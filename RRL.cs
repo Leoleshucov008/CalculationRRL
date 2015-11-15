@@ -109,10 +109,6 @@ namespace RRL
                 while (xr <= points[i + 1].x)
                 {
                     yr = at(xr);
-                    if (xr > 0.42 && xl < 0.44)
-                    {
-                        xr = xr;
-                    }
                     double ldy = f.at(xl) - yl, rdy = f.at(xr) - yr;
                     if (ldy == 0.0)
                     {
@@ -309,6 +305,7 @@ namespace RRL
 
         private void calcOpened()
         {
+            //ящерица
         }
         private void calcHalfOpened()
         {
