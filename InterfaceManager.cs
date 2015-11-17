@@ -9,7 +9,7 @@ namespace CalculationRRL
     {
         // Выделенная точка, на которую нажали правой
         int selectedPoint;
-
+        
         // Отображать кривизне земной поверхности
         private bool _isShowEarthCurve;
         public bool isShowEarthCurve 
@@ -102,15 +102,15 @@ namespace CalculationRRL
             zedGraphPane.XAxis.Scale.MinorStep = _R / 20;
         }
         // Длина волны(м)
-        private double _lamda;
-        public double lamda
+        private double _lambda;
+        public double lambda
         {
-            get { return _lamda; }
+            get { return _lambda; }
             set
             {
-                if (_lamda == value)
+                if (_lambda == value)
                     return;
-                _lamda = value;
+                _lambda = value;
                 updateGraph();
 
             }
@@ -216,7 +216,10 @@ namespace CalculationRRL
             // Добавление новой точки на графике
             double x, y;
             zedGraphPane.ReverseTransform(p, out x, out y);
-
+            if (!isPointInGraph(x, y))
+            {
+                return;
+            }
             int i = profile.FindIndex(a => a.x > x);
             if (i < 0)
             {
@@ -242,29 +245,36 @@ namespace CalculationRRL
 
         public void editPointOnProfile(int index, RRL.PointD p)
         {
-            profile[index] = p;
+            if (isPointInGraph(p.x, p.y))
+            {
+                profile[index] = p;
+            }
             updateProfile();
             updateGraph();
         }
-        static int iii = 0;
+
+
+        private bool isPointInGraph(double x, double y)
+        {
+            return x >= 0 && x <= R && y >= _hMin && y <= _hMax;
+        }
+
         public void showHint(PointF p, ToolTip toolTip)
         {
             double x, y;
             
             zedGraphPane.ReverseTransform(p, out x, out y);
 
-            if (x < 0 || x > _R || y < _hMin || y > _hMax)
+            if (!isPointInGraph(x, y))
             {
-                toolTip.Hide(zedGraphControl);
-                Console.WriteLine("HIde " + iii.ToString());
+                toolTip.Hide(zedGraphControl);               
             }
             else
             {
                 Point point= new Point(Convert.ToInt32(p.X), Convert.ToInt32(p.Y));
-                toolTip.Show(x.ToString("F2") + ":" + y.ToString("F2"), zedGraphControl, point);
-                Console.WriteLine("Show" + iii.ToString());
+                toolTip.Show(x.ToString("F2") + ":" + y.ToString("F2"), zedGraphControl, point);           
             }
-            ++iii;
+
             
         }
 
@@ -288,24 +298,29 @@ namespace CalculationRRL
             int index;
             bool isOnCurve = zedGraphPane.FindNearestPoint(p, zedGraphPane.CurveList, out curve, out index);
             
-            if (!isOnCurve)
+            // Если первая или последняя точка интервала
+            if (isOnCurve && curve == zedGraphPane.CurveList[0] && (index == 0 || index == profile.Count - 1))
             {
-                double x, y;
+                // Запрет редактирования по x
+                zedGraphControl.IsEnableHEdit = false;
+            }
+
+            // Если точка не на профиле интервала
+            if (isOnCurve && curve != zedGraphPane.CurveList[0])
+            {
+                // Запрет редактирования
+                disableEditOnGraph();
+            }
+
+            if (!isOnCurve || curve != zedGraphPane.CurveList[0])
+            {    double x, y;
                 zedGraphPane.ReverseTransform(p, out x, out y);
-                if (x > 0 && x < _R)
+                if (isPointInGraph(x, y))
                 {
                     addPointOnProfile(p);
                 }
             }
-            if (isOnCurve && curve == zedGraphPane.CurveList[0] && (index == 0 || index == profile.Count - 1))
-            {
-                zedGraphControl.IsEnableHEdit = false;
-            }
-
-            if (isOnCurve && curve != zedGraphPane.CurveList[0])
-            {
-                disableEditOnGraph();
-            }
+            
         }
 
         public void zedGraphRightDown(PointF p)
@@ -324,23 +339,33 @@ namespace CalculationRRL
                 zedGraphControl.IsShowContextMenu = false;
             }            
         }
+        public void listToArrays(List<RRL.PointD> list, out double[] x, out double[] y)
+        {
+            x = new double[list.Count];
+            y = new double[list.Count];
+            for (int i = 0; i < list.Count; ++i)
+            {
+                x[i] = list[i].x;
+                y[i] = list[i].y;
+            }
+        }
 
         public void calculation()
         {
-            List<RRL.PointD> profileWithEarthCurve = new List<RRL.PointD>(profile);
-            foreach (RRL.PointD p in profileWithEarthCurve)
+            // Добаление к координатом профиля кривизны дуги земной поверхности
+
+            List<RRL.PointD> profileWithEarthCurve = new List<RRL.PointD>(profile.Count);
+            for (int i = 0; i < profile.Count; ++i)
             {
-                p.y += getEarthCurveH(p.x);
+                profileWithEarthCurve.Add(new RRL.PointD(profile[i]));
+                profileWithEarthCurve[i].y += getEarthCurveH(profileWithEarthCurve[i].x);
             }
-            RRL.RRLCalculator calc = new RRL.RRLCalculator(profileWithEarthCurve, _lamda, _antennaH);
-            List<RRL.PointD> h0 = calc.getH0();
-            double[] x = new double[h0.Count];
-            double[] y = new double[h0.Count];
-            for (int i = 0; i < h0.Count; ++i)
-            {
-                x[i] = h0[i].x;
-                y[i] = h0[i].y;
-            }
+             
+            RRL.RRLCalculator calc = new RRL.RRLCalculator(profileWithEarthCurve, _lambda, _antennaH);
+            double[] x;
+            double[] y;
+            listToArrays(calc.getH0(), out x, out y);
+            updateGraph();
             zedGraphPane.AddCurve("Линия критических просветов", x, y, Color.Green, ZedGraph.SymbolType.None);
             zedGraphControl.Invalidate();
             switch (calc.getIntervalType())
@@ -350,6 +375,8 @@ namespace CalculationRRL
                 case RRL.IntervalType.closed : Console.WriteLine("Closed"); break;
             }
         }
+
+        
         
 
         public InterfaceManager(ZedGraph.ZedGraphControl zgc)
@@ -360,7 +387,7 @@ namespace CalculationRRL
             _R = 20;
             _hMax = 200;
             _antennaH = 20;
-            _lamda = 2.5;
+            _lambda = 2.5;
             profile = new List<RRL.PointD>(20);
             profile.Insert(0, new RRL.PointD(0, (_hMax + _hMin) / 2.0));
             profile.Insert(1, new RRL.PointD(_R, (_hMax + _hMin) / 2.0));

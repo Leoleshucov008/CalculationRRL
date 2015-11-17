@@ -37,15 +37,21 @@
             this.textBoxHMin = new System.Windows.Forms.TextBox();
             this.textBoxAntennaH = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.textBoxLamda = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.waveNumInfo = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.waveNumber = new System.Windows.Forms.NumericUpDown();
+            this.label8 = new System.Windows.Forms.Label();
+            this.SubRange = new System.Windows.Forms.ComboBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.StationType = new System.Windows.Forms.ComboBox();
             this.label6 = new System.Windows.Forms.Label();
             this.textBoxHMax = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.earthCurveCheckBox = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.waveNumber)).BeginInit();
             this.SuspendLayout();
             // 
             // coord
@@ -137,33 +143,20 @@
             this.label3.TabIndex = 4;
             this.label3.Text = "Высота антенн (м)";
             // 
-            // textBoxLamda
-            // 
-            this.textBoxLamda.Location = new System.Drawing.Point(9, 246);
-            this.textBoxLamda.Name = "textBoxLamda";
-            this.textBoxLamda.Size = new System.Drawing.Size(126, 21);
-            this.textBoxLamda.TabIndex = 7;
-            this.textBoxLamda.Text = "2.5";
-            this.textBoxLamda.Leave += new System.EventHandler(this.textBoxLamda_Leave);
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(6, 228);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(91, 13);
-            this.label4.TabIndex = 6;
-            this.label4.Text = "Длина волны (м)";
-            // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.waveNumInfo);
+            this.groupBox1.Controls.Add(this.label9);
+            this.groupBox1.Controls.Add(this.waveNumber);
+            this.groupBox1.Controls.Add(this.label8);
+            this.groupBox1.Controls.Add(this.SubRange);
+            this.groupBox1.Controls.Add(this.label7);
+            this.groupBox1.Controls.Add(this.StationType);
             this.groupBox1.Controls.Add(this.label6);
             this.groupBox1.Controls.Add(this.textBoxHMax);
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.textBoxLamda);
             this.groupBox1.Controls.Add(this.textBoxRRLLength);
-            this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.textBoxAntennaH);
             this.groupBox1.Controls.Add(this.textBoxHMin);
@@ -174,6 +167,76 @@
             this.groupBox1.TabIndex = 8;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Параметры расчета";
+            // 
+            // waveNumInfo
+            // 
+            this.waveNumInfo.AutoSize = true;
+            this.waveNumInfo.Location = new System.Drawing.Point(132, 330);
+            this.waveNumInfo.Name = "waveNumInfo";
+            this.waveNumInfo.Size = new System.Drawing.Size(0, 13);
+            this.waveNumInfo.TabIndex = 17;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(6, 307);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(73, 13);
+            this.label9.TabIndex = 16;
+            this.label9.Text = "Номер волны";
+            // 
+            // waveNumber
+            // 
+            this.waveNumber.Location = new System.Drawing.Point(5, 323);
+            this.waveNumber.Name = "waveNumber";
+            this.waveNumber.Size = new System.Drawing.Size(120, 21);
+            this.waveNumber.TabIndex = 15;
+            this.waveNumber.ValueChanged += new System.EventHandler(this.waveNumber_ValueChanged);
+            this.waveNumber.KeyUp += new System.Windows.Forms.KeyEventHandler(this.waveNumber_KeyUp);
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(6, 263);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(75, 13);
+            this.label8.TabIndex = 14;
+            this.label8.Text = "Поддиапазон";
+            // 
+            // SubRange
+            // 
+            this.SubRange.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.SubRange.FormattingEnabled = true;
+            this.SubRange.Items.AddRange(new object[] {
+            "Б",
+            "В"});
+            this.SubRange.Location = new System.Drawing.Point(6, 279);
+            this.SubRange.Name = "SubRange";
+            this.SubRange.Size = new System.Drawing.Size(69, 21);
+            this.SubRange.TabIndex = 13;
+            this.SubRange.SelectedValueChanged += new System.EventHandler(this.SubRange_SelectedValueChanged);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(6, 218);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(69, 13);
+            this.label7.TabIndex = 12;
+            this.label7.Text = "Тип станции";
+            // 
+            // StationType
+            // 
+            this.StationType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.StationType.FormattingEnabled = true;
+            this.StationType.Items.AddRange(new object[] {
+            "Р-409",
+            "Р-419"});
+            this.StationType.Location = new System.Drawing.Point(6, 234);
+            this.StationType.Name = "StationType";
+            this.StationType.Size = new System.Drawing.Size(69, 21);
+            this.StationType.TabIndex = 11;
+            this.StationType.SelectedIndexChanged += new System.EventHandler(this.StationType_SelectedIndexChanged);
             // 
             // label6
             // 
@@ -236,6 +299,7 @@
             this.Text = "Расчет РРЛ";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.waveNumber)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -249,8 +313,6 @@
         private System.Windows.Forms.TextBox textBoxHMin;
         private System.Windows.Forms.TextBox textBoxAntennaH;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox textBoxLamda;
-        private System.Windows.Forms.Label label4;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ToolTip coord;
         private System.Windows.Forms.Label label6;
@@ -259,6 +321,13 @@
         private ZedGraph.ZedGraphControl zedGraph;
         private System.Windows.Forms.CheckBox earthCurveCheckBox;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.NumericUpDown waveNumber;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.ComboBox SubRange;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.ComboBox StationType;
+        private System.Windows.Forms.Label waveNumInfo;
     }
 }
 

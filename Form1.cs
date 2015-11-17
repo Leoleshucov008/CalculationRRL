@@ -22,7 +22,8 @@ namespace CalculationRRL
             textBoxHMin.Text = interfaceManager.hMin.ToString();
             textBoxHMax.Text = interfaceManager.hMax.ToString();
             textBoxAntennaH.Text = interfaceManager.antennaH.ToString();
-            textBoxLamda.Text = interfaceManager.lamda.ToString();
+            StationType.SelectedIndex = 0;
+            SubRange.SelectedIndex = 0;
         }
 
         private void textBoxRRLLength_Leave(object sender, EventArgs e)
@@ -73,17 +74,6 @@ namespace CalculationRRL
             }
         }
 
-        private void textBoxLamda_Leave(object sender, EventArgs e)
-        {
-            try
-            {
-                interfaceManager.lamda = Convert.ToDouble(textBoxLamda.Text.Replace('.', ','));
-            }
-            catch (FormatException)
-            {
-                MessageBox.Show("Неверно введена длина волны.\nПоле должно содержать вещественное число.", "Ошибка");
-            }
-        }
 
         private void zedGraph_MouseMove(object sender, MouseEventArgs e)
         {
@@ -146,6 +136,117 @@ namespace CalculationRRL
         private void button1_Click(object sender, EventArgs e)
         {
             interfaceManager.calculation();
+        }
+
+        private void StationType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SubRange.Items.Clear();
+            if (StationType.SelectedIndex == 0)
+            {
+                SubRange.Items.Add("Б");
+                SubRange.Items.Add("В");
+            }
+            if (StationType.SelectedIndex == 1)
+            {
+                SubRange.Items.Add("2");
+                SubRange.Items.Add("3");
+                SubRange.Items.Add("4");
+                SubRange.Items.Add("5");
+
+            }
+            SubRange.SelectedIndex = 0;
+
+        }
+        private void setMinMaxWaveNum(int min, int max)
+        {
+            waveNumber.Maximum = max;
+            waveNumber.Minimum = min;
+        }
+        private void SubRange_SelectedValueChanged(object sender, EventArgs e)
+        {
+            switch (SubRange.Items[SubRange.SelectedIndex].ToString())
+            {
+                case "Б": setMinMaxWaveNum(0, 600); break;
+                case "В": setMinMaxWaveNum(0, 600); break;
+                case "2": setMinMaxWaveNum(0, 800); break;
+                case "3": setMinMaxWaveNum(0, 534); break;
+                case "4": setMinMaxWaveNum(0, 800); break;
+                case "5": setMinMaxWaveNum(0, 550); break;
+
+            }
+            waveNumInfo.Text = "0..." + waveNumber.Maximum.ToString();
+        }
+
+        private void waveNumber_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (waveNumber.Value < waveNumber.Minimum)
+                waveNumber.Value = waveNumber.Minimum;
+            if (waveNumber.Value > waveNumber.Maximum)
+                waveNumber.Value = waveNumber.Maximum;
+        }
+
+        private void waveNumber_ValueChanged(object sender, EventArgs e)
+        {
+            interfaceManager.lambda = getLambda(Convert.ToInt32(waveNumber.Value), SubRange.SelectedItem.ToString(), StationType.SelectedItem.ToString());
+        }
+
+        private double getLambda(int number, string podd, string stationtype)
+        {
+            double f;
+            double lambda;
+            double CC = 3 * Math.Pow(10.0, 8.0);
+            if (stationtype == "Р-409")
+            {
+                switch (podd)
+                {
+                    case "А":
+                        {
+                            f = 60 + 0.1 * number;
+                            break;
+                        }
+                    case "Б":
+                        {
+                            f = 120 + 0.1 * number;
+                            break;
+                        }
+                    default:
+                        {
+                            f = 240 + 0.1 * number;
+                            break;
+                        }
+                }
+            }
+
+            else
+            {
+                switch (podd)
+                {
+                    case "2":
+                        {
+                            f = 160 + 0.1 * number;
+                            break;
+                        }
+                    case "3":
+                        {
+                            f = 240 + 0.1 * number;
+                            break;
+                        }
+                    case "4":
+                        {
+                            f = 320 + 0.1 * number;
+                            break;
+                        }
+                    default:
+                        {
+                            f = 480 + 0.1 * number;
+                            break;
+                        }
+                }
+                
+            }
+            lambda = CC / f / 1000000.0;
+            return lambda;
+
         }
     }
    
