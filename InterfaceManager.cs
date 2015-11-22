@@ -396,6 +396,8 @@ namespace CalculationRRL
             earthCurveX = new double[1];
             earthCurveY = new double[1];
             zedGraphControl.IsShowContextMenu = false;
+            ZedGraph.Line.Default.IsSmooth = true;
+            ZedGraph.Line.Default.SmoothTension = 0.3F;
             selectedPoint = -1;
             ZedGraph.GraphPane.Default.NearestTol = 10;
             zedGraphPane.Title.Text = "Профиль интервала РРЛ";
