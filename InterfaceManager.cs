@@ -5,11 +5,55 @@ using System.Windows.Forms;
 
 namespace CalculationRRL
 {
+    public class CurveInfo
+    {
+        public CurveInfo(String name, ZedGraph.CurveItem c, bool isEdit)
+        {
+            curve = c;
+            isAllowEdit = isEdit;
+            this.name = name;
+        }
+        public ZedGraph.CurveItem curve;
+        public bool isAllowEdit;
+        public String name;
+    }
     class InterfaceManager
     {
         // Выделенная точка, на которую нажали правой
-        int selectedPoint;
+        int selectedPoint;        
+
+        // Текущее состояние
+        private State currentState;
+        public void goNextState()
+        {
+            currentState.doAfter();
+            currentState = currentState.getNext();
+            currentState.doBefore();
+        }
         
+
+        public CurveInfo getCurveInfo(String name)
+        {
+            return curveList.Find(x => x.name.Equals(name));
+        }
+
+        // <Имя кривой, информация о кривой>
+        public List<CurveInfo> curveList;
+
+        public List<List<ZedGraph.CurveItem> > bariersList;
+        
+        public void addNewBarier()
+        {
+            bariersList.Add(new List<ZedGraph.CurveItem>());
+            currentBarier = bariersList[bariersList.Count - 1];
+        }
+
+        List<ZedGraph.CurveItem> currentBarier;
+        
+
+
+
+
         // Отображать кривизне земной поверхности
         private bool _isShowEarthCurve;
         public bool isShowEarthCurve 
@@ -20,6 +64,16 @@ namespace CalculationRRL
                 if (_isShowEarthCurve == value)
                     return;
                 _isShowEarthCurve = value;
+
+                if (_isShowEarthCurve)
+                {
+                    zedGraphPane.AddCurve("Линия кривизны дуги земной поверхности", earthCurveX, earthCurveY, Color.Red, ZedGraph.SymbolType.None);
+                    curveList.Add(new CurveInfo("earthCurve", zedGraphPane.CurveList[zedGraphPane.CurveList.Count - 1], false));
+                }
+                else
+                {
+                    zedGraphPane.CurveList.Remove(curveList.Find(x => x.name.Equals("earthCurve")).curve);
+                }
                 updateProfile();
                 updateEarthCurve();
                 updateGraph();
@@ -42,7 +96,6 @@ namespace CalculationRRL
 
                 updateProfile();
                 updateEarthCurve();
-                updateGraph();
             }
         }
         // Высота антенн(м)
@@ -55,7 +108,6 @@ namespace CalculationRRL
                 if (_antennaH == value)
                     return;
                 _antennaH = value;
-                updateGraph();
 
             }
         }
@@ -73,8 +125,6 @@ namespace CalculationRRL
                 zedGraphPane.YAxis.Scale.Min = _hMin;
                 updateZedGraphSteps();
 
-                updateGraph();
-
             }
         }
         private double _hMax;
@@ -89,7 +139,6 @@ namespace CalculationRRL
 
                 zedGraphPane.YAxis.Scale.Max = _hMax;
                 updateZedGraphSteps();
-                updateGraph();
 
             }
         }
@@ -111,7 +160,6 @@ namespace CalculationRRL
                 if (_lambda == value)
                     return;
                 _lambda = value;
-                updateGraph();
 
             }
         }
@@ -193,15 +241,27 @@ namespace CalculationRRL
         {
             double[] x = new double[2] {0, R};
             double[] y = new double[2] {profileY[0] + _antennaH, profileY[profileY.Length-1] + _antennaH};
-            zedGraphPane.AddCurve("Линия прямой видимости", x, y, Color.Blue, ZedGraph.SymbolType.UserDefined);
+            insertDataToCurve(x, y, zedGraphPane.CurveList[1]);
+            // Добавление кривой (линия прямой видимости)
+            //zedGraphPane.AddCurve("Линия прямой видимости", x, y, Color.Blue, ZedGraph.SymbolType.UserDefined);
+        }
+
+        private void insertDataToCurve(double[] x, double[] y, ZedGraph.CurveItem curve)
+        {
+            curve.Clear();
+            for (int i = 0; i < x.Length; ++i)
+            {
+                curve.AddPoint(x[i], y[i]);
+            }
         }
 
         private void updateGraph()
         {
-            zedGraphPane.CurveList.Clear();
-
-            zedGraphPane.AddCurve("", profileX, profileY, Color.Black, ZedGraph.SymbolType.Circle);
+            // Профиль интервала
+            insertDataToCurve(profileX, profileY, zedGraphPane.CurveList[0]);
+          
             drawLineOfSight();
+
             if (_isShowEarthCurve)
             {
                 zedGraphPane.AddCurve("", earthCurveX, earthCurveY, Color.Red, ZedGraph.SymbolType.None);
@@ -211,22 +271,42 @@ namespace CalculationRRL
 
         }
 
-        public void addPointOnProfile(System.Drawing.PointF p)
+        public void addPointOnCurve(RRL.PointD p)
         {
-            // Добавление новой точки на графике
-            double x, y;
-            zedGraphPane.ReverseTransform(p, out x, out y);
-            if (!isPointInGraph(x, y))
+            if (_isShowEarthCurve)
             {
-                return;
+                p.y -= getEarthCurveH(p.x);
             }
-            int i = profile.FindIndex(a => a.x > x);
-            if (i < 0)
+            // Добавление новой точки к препятствию
+            if (currentState.GetType().Name.Equals("InputBarier"))
             {
-                i = profile.Count;
+                if (currentBarier.Count < 3)
+                {
+                    double[] x = new double[1];
+                    double[] y = new double[1];
+
+                    x[0] = p.x;
+                    y[0] = p.y;
+
+                    zedGraphPane.AddCurve("", x, y, Color.Red, ZedGraph.SymbolType.Circle);
+                    currentBarier.Add(zedGraphPane.CurveList[zedGraphPane.CurveList.Count - 1]);                    
+                }
+                else
+                {
+                    MessageBox.Show("Введены три точки препятствия, для ввода еще одного препятствия нажмите \"Добавить препятствие\"." +
+                        "Для расчета пригодности интервала нажмите \"Расчет\"");
+                }
             }
-            profile.Insert(i, new RRL.PointD(x, y));
-            updateProfile();
+            if (currentState.GetType().Name.Equals("InputProfilePoints"))
+            {     
+                int i = profile.FindIndex(a => a.x > p.x);
+                if (i < 0)
+                {
+                    i = profile.Count;
+                }
+                profile.Insert(i, p);
+                updateProfile();
+            }
             updateGraph();
         }
 
@@ -243,11 +323,23 @@ namespace CalculationRRL
             selectedPoint = -1;
         }
 
-        public void editPointOnProfile(int index, RRL.PointD p)
+        public void editPointOnProfile(ZedGraph.CurveItem curve, int index, RRL.PointD p)
         {
             if (isPointInGraph(p.x, p.y))
             {
-                profile[index] = p;
+                if (currentState.GetType().Name.Equals("InputProfilePoints"))
+                {
+                    profile[index] = p;
+                }
+                if (currentState.GetType().Name.Equals("InputBarier"))
+                {
+                    curve.Points[0].Y = getYCoordOfProfile(p.x);
+                }                
+
+                if (_isShowEarthCurve)
+                {
+                    p.y -= getEarthCurveH(p.x);
+                }
             }
             updateProfile();
             updateGraph();
@@ -261,8 +353,7 @@ namespace CalculationRRL
 
         public void showHint(PointF p, ToolTip toolTip)
         {
-            double x, y;
-            
+            double x, y;            
             zedGraphPane.ReverseTransform(p, out x, out y);
 
             if (!isPointInGraph(x, y))
@@ -273,9 +364,7 @@ namespace CalculationRRL
             {
                 Point point= new Point(Convert.ToInt32(p.X), Convert.ToInt32(p.Y));
                 toolTip.Show(x.ToString("F2") + ":" + y.ToString("F2"), zedGraphControl, point);           
-            }
-
-            
+            }            
         }
 
         private void disableEditOnGraph()
@@ -292,35 +381,42 @@ namespace CalculationRRL
 
         public void zedGraphLeftDown(PointF p)
         {
-            enableEditOnGraph();
-            
             ZedGraph.CurveItem curve;
             int index;
             bool isOnCurve = zedGraphPane.FindNearestPoint(p, zedGraphPane.CurveList, out curve, out index);
-            
-            // Если первая или последняя точка интервала
-            if (isOnCurve && curve == zedGraphPane.CurveList[0] && (index == 0 || index == profile.Count - 1))
-            {
-                // Запрет редактирования по x
-                zedGraphControl.IsEnableHEdit = false;
-            }
 
-            // Если точка не на профиле интервала
-            if (isOnCurve && curve != zedGraphPane.CurveList[0])
+            if (isOnCurve)
             {
-                // Запрет редактирования
-                disableEditOnGraph();
+                for (int i = 0; i < curveList.Count; ++i)
+                {
+                    if (curve == curveList[i].curve)
+                    {
+                        if (curveList[i].isAllowEdit)
+                        {
+                            enableEditOnGraph();
+                            // Если первая или последняя точка интервала
+                            if (curveList[i].name.Equals("profile") && (index == 0 || index == curve.Points.Count - 1))
+                            {
+                                // То разрешить редактирование только по Y
+                                zedGraphControl.IsEnableHEdit = false;
+                            }
+                        }
+                        else
+                        {
+                            disableEditOnGraph();
+                        }
+                    }
+                }
             }
-
-            if (!isOnCurve || curve != zedGraphPane.CurveList[0])
-            {    double x, y;
+            else
+            {
+                double x, y;
                 zedGraphPane.ReverseTransform(p, out x, out y);
                 if (isPointInGraph(x, y))
                 {
-                    addPointOnProfile(p);
+                    addPointOnCurve(new RRL.PointD(x, y));
                 }
-            }
-            
+            }         
         }
 
         public void zedGraphRightDown(PointF p)
@@ -375,9 +471,49 @@ namespace CalculationRRL
                 case RRL.IntervalType.closed : Console.WriteLine("Closed"); break;
             }
         }
+        public void showGraph()
+        {
+            zedGraphControl.Visible = true;
+        }
 
-        
-        
+        public void parametersChange()
+        {
+            if (!currentState.GetType().Name.Equals("InputIntervalParameters"))
+            {
+                MessageBox.Show("Для изменения параметров интервала нажмите \"Применить\"");
+            }
+            
+        }
+
+        public void resetGraph()
+        {
+            // Устанавливает график в начальное состояние
+
+            selectedPoint = -1;
+            profile.Insert(0, new RRL.PointD(0, (_hMax + _hMin) / 2.0));
+            profile.Insert(1, new RRL.PointD(_R, (_hMax + _hMin) / 2.0));
+            zedGraphPane.XAxis.Scale.Max = _R;
+            zedGraphPane.YAxis.Scale.Min = hMin;
+            zedGraphPane.YAxis.Scale.Max = hMax;
+
+            updateZedGraphSteps();
+
+            zedGraphPane.AddCurve("Профиль интевала", profileX, profileY, Color.Black, ZedGraph.SymbolType.Circle);
+            curveList.Add(new CurveInfo("profile", zedGraphPane.CurveList[0], true));
+
+            zedGraphPane.AddCurve("Линия прямой видимости", profileX, profileY, Color.Blue, ZedGraph.SymbolType.None);
+            curveList.Add(new CurveInfo("lineOfSight", zedGraphPane.CurveList[1], false));
+
+            updateEarthCurve();
+            updateProfile();
+            updateGraph();
+        }
+
+
+        private double getYCoordOfProfile(double x)
+        {
+            return ((ZedGraph.PointPairList)curveList.Find(a => a.name.Equals("profile")).curve.Points).SplineInterpolateX(x, ZedGraph.Line.Default.SmoothTension);
+        }
 
         public InterfaceManager(ZedGraph.ZedGraphControl zgc)
         {
@@ -389,28 +525,30 @@ namespace CalculationRRL
             _antennaH = 20;
             _lambda = 2.5;
             profile = new List<RRL.PointD>(20);
-            profile.Insert(0, new RRL.PointD(0, (_hMax + _hMin) / 2.0));
-            profile.Insert(1, new RRL.PointD(_R, (_hMax + _hMin) / 2.0));
+            
             profileX = new double[1];
             profileY = new double[1];
             earthCurveX = new double[1];
             earthCurveY = new double[1];
+            curveList = new List<CurveInfo>();
+            bariersList = new List<List<ZedGraph.CurveItem>>();
+           
             zedGraphControl.IsShowContextMenu = false;
             ZedGraph.Line.Default.IsSmooth = true;
             ZedGraph.Line.Default.SmoothTension = 0.3F;
-            selectedPoint = -1;
             ZedGraph.GraphPane.Default.NearestTol = 10;
+            zedGraphControl.EditButtons = MouseButtons.Left;
             zedGraphPane.Title.Text = "Профиль интервала РРЛ";
             zedGraphPane.XAxis.Title.Text = "Расстояние";
             zedGraphPane.YAxis.Title.Text = "Высота";
-            zedGraphPane.XAxis.Scale.Max = _R;
-            zedGraphPane.YAxis.Scale.Min = hMin;
-            zedGraphPane.YAxis.Scale.Max = hMax;
-            zedGraphControl.EditButtons = MouseButtons.Left;
-            updateZedGraphSteps();
-            updateEarthCurve();
-            updateProfile();
-            updateGraph();
+
+            FinalState finalState = new FinalState(this);
+            InputBarier inputBarierState = new InputBarier(finalState, this);
+            InputProfilePoints inputProfilePoints =  new InputProfilePoints(inputBarierState, this);            
+            currentState = new InputIntervalParameters(inputProfilePoints, this);
+
         }
     }
+
+    
 }

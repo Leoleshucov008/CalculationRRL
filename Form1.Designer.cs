@@ -38,6 +38,7 @@
             this.textBoxAntennaH = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.acceptIntervalParametersBtn = new System.Windows.Forms.Button();
             this.waveNumInfo = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.waveNumber = new System.Windows.Forms.NumericUpDown();
@@ -50,6 +51,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.earthCurveCheckBox = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.acceptProfileInputBtn = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.waveNumber)).BeginInit();
             this.SuspendLayout();
@@ -82,10 +84,12 @@
             this.zedGraph.ScrollMinY2 = 0D;
             this.zedGraph.Size = new System.Drawing.Size(563, 383);
             this.zedGraph.TabIndex = 0;
+            this.zedGraph.Visible = false;
             this.zedGraph.ZoomButtons = System.Windows.Forms.MouseButtons.Middle;
             this.zedGraph.ContextMenuBuilder += new ZedGraph.ZedGraphControl.ContextMenuBuilderEventHandler(this.zedGraph_ContextMenuBuilder);
             this.zedGraph.PointEditEvent += new ZedGraph.ZedGraphControl.PointEditHandler(this.zedGraph_PointEditEvent);
             this.zedGraph.MouseDownEvent += new ZedGraph.ZedGraphControl.ZedMouseEventHandler(this.zedGraph_MouseDownEvent);
+            this.zedGraph.VisibleChanged += new System.EventHandler(this.zedGraph_VisibleChanged);
             this.zedGraph.MouseLeave += new System.EventHandler(this.zedGraph_MouseLeave);
             this.zedGraph.MouseMove += new System.Windows.Forms.MouseEventHandler(this.zedGraph_MouseMove);
             // 
@@ -145,6 +149,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.acceptIntervalParametersBtn);
             this.groupBox1.Controls.Add(this.waveNumInfo);
             this.groupBox1.Controls.Add(this.label9);
             this.groupBox1.Controls.Add(this.waveNumber);
@@ -163,10 +168,20 @@
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Location = new System.Drawing.Point(12, 13);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(226, 382);
+            this.groupBox1.Size = new System.Drawing.Size(226, 405);
             this.groupBox1.TabIndex = 8;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Параметры расчета";
+            // 
+            // acceptIntervalParametersBtn
+            // 
+            this.acceptIntervalParametersBtn.Location = new System.Drawing.Point(6, 359);
+            this.acceptIntervalParametersBtn.Name = "acceptIntervalParametersBtn";
+            this.acceptIntervalParametersBtn.Size = new System.Drawing.Size(75, 23);
+            this.acceptIntervalParametersBtn.TabIndex = 18;
+            this.acceptIntervalParametersBtn.Text = "Применить";
+            this.acceptIntervalParametersBtn.UseVisualStyleBackColor = true;
+            this.acceptIntervalParametersBtn.Click += new System.EventHandler(this.acceptIntervalParametersBtn_Click);
             // 
             // waveNumInfo
             // 
@@ -274,6 +289,7 @@
             this.earthCurveCheckBox.TabIndex = 9;
             this.earthCurveCheckBox.Text = "Отобразить кривизну земной поверхности";
             this.earthCurveCheckBox.UseVisualStyleBackColor = true;
+            this.earthCurveCheckBox.Visible = false;
             this.earthCurveCheckBox.CheckedChanged += new System.EventHandler(this.earthCurve_CheckedChanged);
             // 
             // button1
@@ -286,11 +302,23 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // acceptProfileInputBtn
+            // 
+            this.acceptProfileInputBtn.Location = new System.Drawing.Point(688, 401);
+            this.acceptProfileInputBtn.Name = "acceptProfileInputBtn";
+            this.acceptProfileInputBtn.Size = new System.Drawing.Size(119, 23);
+            this.acceptProfileInputBtn.TabIndex = 11;
+            this.acceptProfileInputBtn.Text = "Применить";
+            this.acceptProfileInputBtn.UseVisualStyleBackColor = true;
+            this.acceptProfileInputBtn.Visible = false;
+            this.acceptProfileInputBtn.Click += new System.EventHandler(this.acceptProfileInputBtn_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(968, 459);
+            this.Controls.Add(this.acceptProfileInputBtn);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.earthCurveCheckBox);
             this.Controls.Add(this.zedGraph);
@@ -328,6 +356,8 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ComboBox StationType;
         private System.Windows.Forms.Label waveNumInfo;
+        private System.Windows.Forms.Button acceptIntervalParametersBtn;
+        private System.Windows.Forms.Button acceptProfileInputBtn;
     }
 }
 

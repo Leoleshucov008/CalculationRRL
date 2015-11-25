@@ -30,7 +30,8 @@ namespace CalculationRRL
         {
             try
             {
-                interfaceManager.R = Convert.ToDouble(textBoxRRLLength.Text.Replace('.', ','));
+                Convert.ToDouble(textBoxRRLLength.Text.Replace('.', ','));
+                interfaceManager.parametersChange();
             }
             catch (FormatException)
             {
@@ -42,7 +43,8 @@ namespace CalculationRRL
         {
             try
             {
-                interfaceManager.hMin = Convert.ToDouble(textBoxHMin.Text.Replace('.', ','));
+                Convert.ToDouble(textBoxHMin.Text.Replace('.', ','));
+                interfaceManager.parametersChange();
             }
             catch (FormatException)
             {
@@ -53,7 +55,8 @@ namespace CalculationRRL
         {
             try
             {
-                interfaceManager.hMax = Convert.ToDouble(textBoxHMax.Text.Replace('.', ','));
+                Convert.ToDouble(textBoxHMax.Text.Replace('.', ','));
+                interfaceManager.parametersChange();
             }
             catch (FormatException)
             {
@@ -66,7 +69,8 @@ namespace CalculationRRL
         {
             try
             {
-                interfaceManager.antennaH = Convert.ToDouble(textBoxAntennaH.Text.Replace('.', ','));
+                Convert.ToDouble(textBoxHMax.Text.Replace('.', ','));
+                interfaceManager.parametersChange();
             }
             catch (FormatException)
             {
@@ -95,7 +99,7 @@ namespace CalculationRRL
         private string zedGraph_PointEditEvent(ZedGraph.ZedGraphControl sender, ZedGraph.GraphPane pane, ZedGraph.CurveItem curve, int iPt)
         {
             RRL.PointD p = new RRL.PointD(curve[iPt].X, curve[iPt].Y);
-            interfaceManager.editPointOnProfile(iPt, p);
+            interfaceManager.editPointOnProfile(curve, iPt, p);
             return default(string);
         }
 
@@ -247,6 +251,26 @@ namespace CalculationRRL
             lambda = CC / f / 1000000.0;
             return lambda;
 
+        }
+
+        private void acceptIntervalParametersBtn_Click(object sender, EventArgs e)
+        {
+            interfaceManager.antennaH = Convert.ToDouble(textBoxAntennaH.Text.Replace('.', ','));
+            interfaceManager.R = Convert.ToDouble(textBoxRRLLength.Text.Replace('.', ','));
+            interfaceManager.hMin = Convert.ToDouble(textBoxHMin.Text.Replace('.', ','));
+            interfaceManager.hMax = Convert.ToDouble(textBoxHMax.Text.Replace('.', ','));
+            interfaceManager.goNextState();
+        }
+
+        private void zedGraph_VisibleChanged(object sender, EventArgs e)
+        {
+            earthCurveCheckBox.Visible = zedGraph.Visible;
+            acceptProfileInputBtn.Visible = zedGraph.Visible;
+        }
+
+        private void acceptProfileInputBtn_Click(object sender, EventArgs e)
+        {
+            interfaceManager.goNextState();
         }
     }
    
