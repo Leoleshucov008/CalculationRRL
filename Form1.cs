@@ -86,8 +86,7 @@ namespace CalculationRRL
             if (e.Location == oldPosition)
                 return;
 
-            interfaceManager.showHint(e.Location, coord);
-           
+            interfaceManager.showHint(e.Location, coord);           
             oldPosition = e.Location;
         }
 
@@ -99,7 +98,7 @@ namespace CalculationRRL
         private string zedGraph_PointEditEvent(ZedGraph.ZedGraphControl sender, ZedGraph.GraphPane pane, ZedGraph.CurveItem curve, int iPt)
         {
             RRL.PointD p = new RRL.PointD(curve[iPt].X, curve[iPt].Y);
-            interfaceManager.editPointOnProfile(curve, iPt, p);
+            interfaceManager.editPoint(curve, iPt);
             return default(string);
         }
 
@@ -125,7 +124,7 @@ namespace CalculationRRL
         }
         private void delItem_MouseClick(object o, EventArgs e)
         {
-            interfaceManager.removeSelectedPoint();
+            interfaceManager.removePoint();
         }
         private void menuStrip_VisibleChanged(object sender, EventArgs e)
         {
@@ -271,6 +270,27 @@ namespace CalculationRRL
         private void acceptProfileInputBtn_Click(object sender, EventArgs e)
         {
             interfaceManager.goNextState();
+            acceptProfileInputBtn.Visible = false;
+            acceptBariersBtn.Visible = true; 
+            addBarierBtn.Visible = true;
+            
+        }
+
+        private void acceptBariersBtn_Click(object sender, EventArgs e)
+        {
+            interfaceManager.goNextState(new FinalState(interfaceManager));
+        }
+
+        private void addBarierBtn_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                interfaceManager.goNextState(new InputBarier(null, interfaceManager));
+            }
+            catch (BarierIsUncompleted exception)
+            {
+                MessageBox.Show(exception.Message);
+            }
         }
     }
    

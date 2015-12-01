@@ -52,6 +52,8 @@
             this.earthCurveCheckBox = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
             this.acceptProfileInputBtn = new System.Windows.Forms.Button();
+            this.addBarierBtn = new System.Windows.Forms.Button();
+            this.acceptBariersBtn = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.waveNumber)).BeginInit();
             this.SuspendLayout();
@@ -300,6 +302,7 @@
             this.button1.TabIndex = 10;
             this.button1.Text = "Расчет";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Visible = false;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // acceptProfileInputBtn
@@ -313,11 +316,35 @@
             this.acceptProfileInputBtn.Visible = false;
             this.acceptProfileInputBtn.Click += new System.EventHandler(this.acceptProfileInputBtn_Click);
             // 
+            // addBarierBtn
+            // 
+            this.addBarierBtn.Location = new System.Drawing.Point(493, 401);
+            this.addBarierBtn.Name = "addBarierBtn";
+            this.addBarierBtn.Size = new System.Drawing.Size(135, 23);
+            this.addBarierBtn.TabIndex = 12;
+            this.addBarierBtn.Text = "Добавить препятствие";
+            this.addBarierBtn.UseVisualStyleBackColor = true;
+            this.addBarierBtn.Visible = false;
+            this.addBarierBtn.Click += new System.EventHandler(this.addBarierBtn_Click);
+            // 
+            // acceptBariersBtn
+            // 
+            this.acceptBariersBtn.Location = new System.Drawing.Point(634, 401);
+            this.acceptBariersBtn.Name = "acceptBariersBtn";
+            this.acceptBariersBtn.Size = new System.Drawing.Size(173, 23);
+            this.acceptBariersBtn.TabIndex = 13;
+            this.acceptBariersBtn.Text = "Закончить ввод препятствий";
+            this.acceptBariersBtn.UseVisualStyleBackColor = true;
+            this.acceptBariersBtn.Visible = false;
+            this.acceptBariersBtn.Click += new System.EventHandler(this.acceptBariersBtn_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(968, 459);
+            this.Controls.Add(this.acceptBariersBtn);
+            this.Controls.Add(this.addBarierBtn);
             this.Controls.Add(this.acceptProfileInputBtn);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.earthCurveCheckBox);
@@ -358,6 +385,8 @@
         private System.Windows.Forms.Label waveNumInfo;
         private System.Windows.Forms.Button acceptIntervalParametersBtn;
         private System.Windows.Forms.Button acceptProfileInputBtn;
+        private System.Windows.Forms.Button addBarierBtn;
+        private System.Windows.Forms.Button acceptBariersBtn;
     }
 }
 

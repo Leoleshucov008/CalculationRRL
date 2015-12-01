@@ -33,6 +33,7 @@ namespace CalculationRRL
         }
         override public void doAfter()
         {
+            manager.interval = new Interval(manager.R, manager.hMin, manager.hMax, manager.lambda, manager.zedGraphPane);
             manager.resetGraph();
             manager.showGraph();
         }
@@ -50,15 +51,15 @@ namespace CalculationRRL
         {
             this.manager = manager;
         }
+
         public override void doAfter()
         {
-            CurveInfo c = manager.getCurveInfo("profile");
-            c.isAllowEdit = false;
+               
         }
 
         override public void doBefore()
         {
-            
+            manager.graphic = manager.interval.profile;    
         }
     }
 
@@ -72,13 +73,12 @@ namespace CalculationRRL
         }
         public override void doAfter()
         {
-            CurveInfo c = manager.getCurveInfo("profile");
-            c.isAllowEdit = false;
             
         }
         override public void doBefore()
         {
-            manager.addNewBarier();
+                manager.interval.addBarier();
+                manager.graphic = manager.interval.currentBarier;
         }
     }
 
