@@ -39,6 +39,13 @@ namespace CalculationRRL
         {}
     }
 
+    class OneBarierNecessary : Exception
+    {
+        public OneBarierNecessary(String mes) :
+            base(mes)
+        { }
+    }
+
     
 
     interface IGraphic
@@ -49,20 +56,82 @@ namespace CalculationRRL
         void removePoint(int index);
     }
 
-
-    class Barier : IGraphic
+    class SyntheticBarier : IGraphic
     {
         private Interval interval;
         public PointPairList points { get; private set; }
         public CurveItem curve { get; private set; }
+        public String barierType;
+
+        public SyntheticBarier(Interval interval, PointPair p)
+        {
+            points = new PointPairList();
+            this.interval = interval;
+            Symbol.Default.FillType = FillType.Solid;
+            curve = new LineItem("", points, Color.Sienna, SymbolType.Square);
+            Symbol.Default.FillType = FillType.Brush;
+            interval.graphPane.CurveList.Add(curve);
+            curve.IsVisible = true;  // Видимы только точки, без линий
+            barierType = "Лес";
+        }
+
+        public CurveItem getCurve()
+        {
+            return curve;
+        }
+
+        public void addPoint(PointPair p)
+        {            
+            if (points.Count >= 2)
+            {
+                throw new BarierIsFull("Введены все точки препятствия");
+            }
+            p.Y = interval.profile.getY(p.X);
+            points.Add(p);
+            points.Sort();
+        }
+
+        public void editPoint(int index, PointPair p, PointPair oldP)
+        {
+            if (!interval.isPointOnInterval(p))
+            {
+                points[index] = oldP;
+                throw new InvalidPointPositon(p.ToString());
+            }   
+           
+            p.Y = interval.profile.getY(p.X);
+            points[index] = p;
+            points.Sort();
+        }
+
+        public void removePoint(int index)
+        {
+            if (index < 0 || index >= points.Count)
+            {
+                throw new InvalidIndex("Точка не существует");
+            }
+            points.RemoveAt(index);
+        }
+    }
+
+    class Barier : IGraphic
+    {
+
+        private Interval interval;
+        public PointPairList points { get; private set; }
+        public LineItem curve { get; private set; }
+        public String barierType;
 
         public Barier(Interval interval)
         {
             points = new PointPairList();
             this.interval = interval;
-            curve = new LineItem("", points, Color.Red, SymbolType.Diamond);
+            curve = new LineItem("", points, Color.SteelBlue, SymbolType.Diamond);
+            curve.Line.IsVisible = false;
+            curve.Symbol.Fill.Color = Color.SteelBlue;
+            curve.Symbol.Fill.Type = FillType.Solid;
             interval.graphPane.CurveList.Add(curve);
-            curve.IsVisible = true;  // Видимы только точки, без линий
+            barierType = "Равнины, луга, соланчаки";
         }
 
         public CurveItem getCurve()
@@ -78,7 +147,7 @@ namespace CalculationRRL
         {            
             if (points.Count >= 3)
             {
-                throw new BarierIsFull("Введены все точки барьера");
+                throw new BarierIsFull("Введены все точки препятствия");
             }
             p.Y = interval.profile.getY(p.X);
             points.Add(p);
@@ -87,6 +156,12 @@ namespace CalculationRRL
 
         public void editPoint(int index, PointPair p, PointPair oldP)
         {
+            if (!interval.isPointOnInterval(p))
+            {
+                points[index] = oldP;
+                throw new InvalidPointPositon(p.ToString());
+            }   
+           
             p.Y = interval.profile.getY(p.X);
             points[index] = p;
             points.Sort();
@@ -230,7 +305,7 @@ namespace CalculationRRL
             const double EarthR = 6371;
             return 1000.0 * (Math.Sqrt(EarthR * EarthR - Math.Pow(x - R / 2, 2.0)) - Math.Sqrt(EarthR * EarthR - R * R / 4));
         }
-
+        
         public Interval(double R, double minH, double maxH, double lambda, ZedGraph.GraphPane graphPane)
         {
             this.R = R;
@@ -268,16 +343,41 @@ namespace CalculationRRL
         public bool isPointOnInterval(PointPair p)
         {
             return p.X >= 0 && p.X <= R && p.Y >= minH && p.Y <= maxH;
-        }       
+        }
+
+        public void setBarier(int index)
+        {
+            if (index < 0 || index >= bariers.Count)
+            {
+                throw new InvalidIndex("Неверный номер барьера");
+            }
+            if (currentBarier != null)
+            {
+                currentBarier.curve.Symbol.Fill.Color = Color.SteelBlue;
+            }
+            currentBarier = bariers[index];
+            currentBarier.curve.Symbol.Fill.Color = Color.Red;
+        }
+
+        public void removeCurrentBarier()
+        {
+            graphPane.CurveList.Remove(currentBarier.curve);
+            bariers.Remove(currentBarier);
+            currentBarier = null;
+            if (bariers.Count == 0)
+            {
+                addBarier();
+            }
+            else
+            {
+                setBarier(bariers.Count - 1);
+            }
+        }
 
         public void addBarier()
         {
-            if (currentBarier != null && currentBarier.points.Count < 3)
-            {
-                throw new BarierIsUncompleted("Завершите ввод текущего барьера");
-            }
-            currentBarier = new Barier(this);
-            bariers.Add(currentBarier);
-        }        
+            bariers.Add(new Barier(this));
+            setBarier(bariers.Count - 1);
+        }
     }
 }

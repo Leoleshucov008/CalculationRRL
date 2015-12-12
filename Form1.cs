@@ -13,11 +13,10 @@ namespace CalculationRRL
     public partial class Form1 : Form
     {
         private CalculationRRL.InterfaceManager interfaceManager;
-        private PointF oldPosition;
         public Form1()
         {
             InitializeComponent();
-            interfaceManager = new InterfaceManager(zedGraph);
+            interfaceManager = new InterfaceManager(zedGraph, bariersListBox, surfaceTypeComboBox);
             textBoxRRLLength.Text = interfaceManager.R.ToString();
             textBoxHMin.Text = interfaceManager.hMin.ToString();
             textBoxHMax.Text = interfaceManager.hMax.ToString();
@@ -76,36 +75,8 @@ namespace CalculationRRL
             {
                 MessageBox.Show("Неверно введена высота антенн.\nПоле должно содержать вещественное число.", "Ошибка");
             }
-        }
-
-
-        private void zedGraph_MouseMove(object sender, MouseEventArgs e)
-        {
-            // Для того чтобы отлавливать реальные перемещения
-            // Событие генерируется даже без перемещения курсора
-            if (e.Location == oldPosition)
-                return;
-
-            interfaceManager.showHint(e.Location, coord);           
-            oldPosition = e.Location;
-        }
-
-        private void zedGraph_MouseLeave(object sender, EventArgs e)
-        {
-            coord.Hide(zedGraph);
-        }
-
-        private string zedGraph_PointEditEvent(ZedGraph.ZedGraphControl sender, ZedGraph.GraphPane pane, ZedGraph.CurveItem curve, int iPt)
-        {
-            RRL.PointD p = new RRL.PointD(curve[iPt].X, curve[iPt].Y);
-            interfaceManager.editPoint(curve, iPt);
-            return default(string);
-        }
-
+        }       
      
-
-        
-
         private bool zedGraph_MouseDownEvent(ZedGraph.ZedGraphControl sender, MouseEventArgs e)
         {
             switch(e.Button)
@@ -258,22 +229,19 @@ namespace CalculationRRL
             interfaceManager.R = Convert.ToDouble(textBoxRRLLength.Text.Replace('.', ','));
             interfaceManager.hMin = Convert.ToDouble(textBoxHMin.Text.Replace('.', ','));
             interfaceManager.hMax = Convert.ToDouble(textBoxHMax.Text.Replace('.', ','));
-            interfaceManager.goNextState();
-        }
-
-        private void zedGraph_VisibleChanged(object sender, EventArgs e)
-        {
+            interfaceManager.goNextState(new InputProfilePoints(null, interfaceManager));
             earthCurveCheckBox.Visible = zedGraph.Visible;
             acceptProfileInputBtn.Visible = zedGraph.Visible;
+            
         }
 
         private void acceptProfileInputBtn_Click(object sender, EventArgs e)
         {
-            interfaceManager.goNextState();
+            interfaceManager.goNextState(new InputBarier(null, interfaceManager));
             acceptProfileInputBtn.Visible = false;
             acceptBariersBtn.Visible = true; 
             addBarierBtn.Visible = true;
-            
+            bariersComboBox.Visible = true;
         }
 
         private void acceptBariersBtn_Click(object sender, EventArgs e)
@@ -290,6 +258,42 @@ namespace CalculationRRL
             catch (BarierIsUncompleted exception)
             {
                 MessageBox.Show(exception.Message);
+            }
+        }
+
+        private bool zedGraph_MouseMoveEvent(ZedGraph.ZedGraphControl sender, MouseEventArgs e)
+        {
+            double x, y;
+            sender.GraphPane.ReverseTransform(new PointF(e.X, e.Y), out x, out y);
+            string s = "(" + x.ToString("f2") + "; " + y.ToString("f2") + ")";
+            coordsLabel.Text = s;
+            return default(bool);
+        }
+
+        private string zedGraph_PointEditEvent(ZedGraph.ZedGraphControl sender, ZedGraph.GraphPane pane, ZedGraph.CurveItem curve, int iPt)
+        {
+            interfaceManager.editPoint(curve, iPt);
+            return default(string);
+
+        }
+
+        private void bariersListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            interfaceManager.selectBarier(bariersListBox.SelectedIndex);
+            surfaceTypeComboBox.SelectedItem = interfaceManager.interval.currentBarier.barierType;
+        }
+
+        private void deleteBarierBtn_Click(object sender, EventArgs e)
+        {
+            interfaceManager.removeCurrentBarier();
+            zedGraph.Invalidate();
+        }
+
+        private void surfaceTypeComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (surfaceTypeComboBox.SelectedIndex != -1)
+            {
+                interfaceManager.interval.currentBarier.barierType = surfaceTypeComboBox.Items[surfaceTypeComboBox.SelectedIndex].ToString();
             }
         }
     }

@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {   
             this.components = new System.ComponentModel.Container();
-            this.coord = new System.Windows.Forms.ToolTip(this.components);
             this.zedGraph = new ZedGraph.ZedGraphControl();
             this.label1 = new System.Windows.Forms.Label();
             this.textBoxRRLLength = new System.Windows.Forms.TextBox();
@@ -54,19 +53,21 @@
             this.acceptProfileInputBtn = new System.Windows.Forms.Button();
             this.addBarierBtn = new System.Windows.Forms.Button();
             this.acceptBariersBtn = new System.Windows.Forms.Button();
+            this.coordsLabel = new System.Windows.Forms.Label();
+            this.bariersListBox = new System.Windows.Forms.ListBox();
+            this.bariersListLabel = new System.Windows.Forms.Label();
+            this.deleteBarierBtn = new System.Windows.Forms.Button();
+            this.surfaceTypeComboBox = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.bariersComboBox = new System.Windows.Forms.GroupBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.waveNumber)).BeginInit();
+            this.bariersComboBox.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // coord
-            // 
-            this.coord.AutomaticDelay = 0;
-            this.coord.ShowAlways = true;
-            this.coord.UseAnimation = false;
-            this.coord.UseFading = false;
             // 
             // zedGraph
             // 
+            this.zedGraph.Cursor = System.Windows.Forms.Cursors.Default;
             this.zedGraph.EditButtons = System.Windows.Forms.MouseButtons.Left;
             this.zedGraph.EditModifierKeys = System.Windows.Forms.Keys.None;
             this.zedGraph.ImeMode = System.Windows.Forms.ImeMode.NoControl;
@@ -75,7 +76,7 @@
             this.zedGraph.IsEnableVEdit = true;
             this.zedGraph.IsEnableVZoom = false;
             this.zedGraph.IsShowContextMenu = false;
-            this.zedGraph.Location = new System.Drawing.Point(244, 12);
+            this.zedGraph.Location = new System.Drawing.Point(204, 12);
             this.zedGraph.Name = "zedGraph";
             this.zedGraph.ScrollGrace = 0D;
             this.zedGraph.ScrollMaxX = 0D;
@@ -84,16 +85,14 @@
             this.zedGraph.ScrollMinX = 0D;
             this.zedGraph.ScrollMinY = 0D;
             this.zedGraph.ScrollMinY2 = 0D;
-            this.zedGraph.Size = new System.Drawing.Size(563, 383);
+            this.zedGraph.Size = new System.Drawing.Size(655, 452);
             this.zedGraph.TabIndex = 0;
             this.zedGraph.Visible = false;
             this.zedGraph.ZoomButtons = System.Windows.Forms.MouseButtons.Middle;
             this.zedGraph.ContextMenuBuilder += new ZedGraph.ZedGraphControl.ContextMenuBuilderEventHandler(this.zedGraph_ContextMenuBuilder);
             this.zedGraph.PointEditEvent += new ZedGraph.ZedGraphControl.PointEditHandler(this.zedGraph_PointEditEvent);
             this.zedGraph.MouseDownEvent += new ZedGraph.ZedGraphControl.ZedMouseEventHandler(this.zedGraph_MouseDownEvent);
-            this.zedGraph.VisibleChanged += new System.EventHandler(this.zedGraph_VisibleChanged);
-            this.zedGraph.MouseLeave += new System.EventHandler(this.zedGraph_MouseLeave);
-            this.zedGraph.MouseMove += new System.Windows.Forms.MouseEventHandler(this.zedGraph_MouseMove);
+            this.zedGraph.MouseMoveEvent += new ZedGraph.ZedGraphControl.ZedMouseEventHandler(this.zedGraph_MouseMoveEvent);
             // 
             // label1
             // 
@@ -168,9 +167,9 @@
             this.groupBox1.Controls.Add(this.textBoxAntennaH);
             this.groupBox1.Controls.Add(this.textBoxHMin);
             this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Location = new System.Drawing.Point(12, 13);
+            this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(226, 405);
+            this.groupBox1.Size = new System.Drawing.Size(186, 405);
             this.groupBox1.TabIndex = 8;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Параметры расчета";
@@ -285,7 +284,7 @@
             // earthCurveCheckBox
             // 
             this.earthCurveCheckBox.AutoSize = true;
-            this.earthCurveCheckBox.Location = new System.Drawing.Point(244, 401);
+            this.earthCurveCheckBox.Location = new System.Drawing.Point(204, 470);
             this.earthCurveCheckBox.Name = "earthCurveCheckBox";
             this.earthCurveCheckBox.Size = new System.Drawing.Size(243, 17);
             this.earthCurveCheckBox.TabIndex = 9;
@@ -296,7 +295,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(831, 371);
+            this.button1.Location = new System.Drawing.Point(784, 470);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 10;
@@ -307,7 +306,7 @@
             // 
             // acceptProfileInputBtn
             // 
-            this.acceptProfileInputBtn.Location = new System.Drawing.Point(688, 401);
+            this.acceptProfileInputBtn.Location = new System.Drawing.Point(739, 470);
             this.acceptProfileInputBtn.Name = "acceptProfileInputBtn";
             this.acceptProfileInputBtn.Size = new System.Drawing.Size(119, 23);
             this.acceptProfileInputBtn.TabIndex = 11;
@@ -318,7 +317,7 @@
             // 
             // addBarierBtn
             // 
-            this.addBarierBtn.Location = new System.Drawing.Point(493, 401);
+            this.addBarierBtn.Location = new System.Drawing.Point(546, 470);
             this.addBarierBtn.Name = "addBarierBtn";
             this.addBarierBtn.Size = new System.Drawing.Size(135, 23);
             this.addBarierBtn.TabIndex = 12;
@@ -329,7 +328,7 @@
             // 
             // acceptBariersBtn
             // 
-            this.acceptBariersBtn.Location = new System.Drawing.Point(634, 401);
+            this.acceptBariersBtn.Location = new System.Drawing.Point(687, 470);
             this.acceptBariersBtn.Name = "acceptBariersBtn";
             this.acceptBariersBtn.Size = new System.Drawing.Size(173, 23);
             this.acceptBariersBtn.TabIndex = 13;
@@ -338,11 +337,87 @@
             this.acceptBariersBtn.Visible = false;
             this.acceptBariersBtn.Click += new System.EventHandler(this.acceptBariersBtn_Click);
             // 
+            // coordsLabel
+            // 
+            this.coordsLabel.AutoSize = true;
+            this.coordsLabel.Location = new System.Drawing.Point(284, 436);
+            this.coordsLabel.Name = "coordsLabel";
+            this.coordsLabel.Size = new System.Drawing.Size(0, 13);
+            this.coordsLabel.TabIndex = 14;
+            // 
+            // bariersListBox
+            // 
+            this.bariersListBox.FormattingEnabled = true;
+            this.bariersListBox.Location = new System.Drawing.Point(6, 34);
+            this.bariersListBox.Name = "bariersListBox";
+            this.bariersListBox.Size = new System.Drawing.Size(127, 95);
+            this.bariersListBox.TabIndex = 15;
+            this.bariersListBox.SelectedIndexChanged += new System.EventHandler(this.bariersListBox_SelectedIndexChanged);
+            // 
+            // bariersListLabel
+            // 
+            this.bariersListLabel.AutoSize = true;
+            this.bariersListLabel.Location = new System.Drawing.Point(3, 16);
+            this.bariersListLabel.Name = "bariersListLabel";
+            this.bariersListLabel.Size = new System.Drawing.Size(115, 13);
+            this.bariersListLabel.TabIndex = 16;
+            this.bariersListLabel.Text = "Список препятствий:";
+            // 
+            // deleteBarierBtn
+            // 
+            this.deleteBarierBtn.Font = new System.Drawing.Font("Tahoma", 8.2F);
+            this.deleteBarierBtn.Location = new System.Drawing.Point(6, 135);
+            this.deleteBarierBtn.Name = "deleteBarierBtn";
+            this.deleteBarierBtn.Size = new System.Drawing.Size(127, 23);
+            this.deleteBarierBtn.TabIndex = 17;
+            this.deleteBarierBtn.Text = "Удалить препятствие";
+            this.deleteBarierBtn.UseVisualStyleBackColor = true;
+            this.deleteBarierBtn.Click += new System.EventHandler(this.deleteBarierBtn_Click);
+            // 
+            // surfaceTypeComboBox
+            // 
+            this.surfaceTypeComboBox.FormattingEnabled = true;
+            this.surfaceTypeComboBox.Items.AddRange(new object[] {
+            "Равнины, луга, соланчаки",
+            "Ровная лесистая поверхность",
+            "Среднепересеченная местность"});
+            this.surfaceTypeComboBox.Location = new System.Drawing.Point(139, 34);
+            this.surfaceTypeComboBox.Name = "surfaceTypeComboBox";
+            this.surfaceTypeComboBox.Size = new System.Drawing.Size(172, 21);
+            this.surfaceTypeComboBox.TabIndex = 18;
+            this.surfaceTypeComboBox.SelectedValueChanged += new System.EventHandler(this.surfaceTypeComboBox_SelectedValueChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(139, 15);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(93, 13);
+            this.label4.TabIndex = 19;
+            this.label4.Text = "Тип поверхности";
+            // 
+            // bariersComboBox
+            // 
+            this.bariersComboBox.Controls.Add(this.bariersListBox);
+            this.bariersComboBox.Controls.Add(this.label4);
+            this.bariersComboBox.Controls.Add(this.bariersListLabel);
+            this.bariersComboBox.Controls.Add(this.surfaceTypeComboBox);
+            this.bariersComboBox.Controls.Add(this.deleteBarierBtn);
+            this.bariersComboBox.Location = new System.Drawing.Point(874, 12);
+            this.bariersComboBox.Name = "bariersComboBox";
+            this.bariersComboBox.Size = new System.Drawing.Size(317, 165);
+            this.bariersComboBox.TabIndex = 20;
+            this.bariersComboBox.TabStop = false;
+            this.bariersComboBox.Text = "Препятствия";
+            this.bariersComboBox.Visible = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(968, 459);
+            this.ClientSize = new System.Drawing.Size(1203, 498);
+            this.Controls.Add(this.bariersComboBox);
+            this.Controls.Add(this.coordsLabel);
             this.Controls.Add(this.acceptBariersBtn);
             this.Controls.Add(this.addBarierBtn);
             this.Controls.Add(this.acceptProfileInputBtn);
@@ -355,6 +430,8 @@
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.waveNumber)).EndInit();
+            this.bariersComboBox.ResumeLayout(false);
+            this.bariersComboBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -369,7 +446,6 @@
         private System.Windows.Forms.TextBox textBoxAntennaH;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.ToolTip coord;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox textBoxHMax;
         private System.Windows.Forms.Label label5;
@@ -387,6 +463,13 @@
         private System.Windows.Forms.Button acceptProfileInputBtn;
         private System.Windows.Forms.Button addBarierBtn;
         private System.Windows.Forms.Button acceptBariersBtn;
+        private System.Windows.Forms.Label coordsLabel;
+        private System.Windows.Forms.ListBox bariersListBox;
+        private System.Windows.Forms.Label bariersListLabel;
+        private System.Windows.Forms.Button deleteBarierBtn;
+        private System.Windows.Forms.ComboBox surfaceTypeComboBox;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.GroupBox bariersComboBox;
     }
 }
 

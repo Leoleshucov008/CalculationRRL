@@ -62,7 +62,28 @@ namespace CalculationRRL
             manager.graphic = manager.interval.profile;    
         }
     }
-
+    class ChangeBarier : State
+    {
+        private InterfaceManager manager;
+        private int index;
+        public ChangeBarier(State nextState, int index, InterfaceManager manager)
+            : base(nextState)
+        {
+            this.index = index;
+            this.manager = manager;
+        }
+        public override void doAfter()
+        {
+            if (manager.interval.currentBarier.points.Count < 3)
+            {
+                throw new BarierIsUncompleted("Завершите ввод текущего препятствия");
+            }     
+        }
+        override public void doBefore()
+        {           
+            
+        }
+    }
     class InputBarier : State
     {
         private InterfaceManager manager;
@@ -73,14 +94,49 @@ namespace CalculationRRL
         }
         public override void doAfter()
         {
-            
+            if (manager.interval.currentBarier.points.Count < 3)
+            {
+                manager.bariersListBox.SelectedIndex = manager.interval.bariers.FindIndex(x => x == manager.interval.currentBarier);                
+                throw new BarierIsUncompleted("Завершите ввод текущего препятствия");
+
+            }
         }
         override public void doBefore()
         {
-                manager.interval.addBarier();
-                manager.graphic = manager.interval.currentBarier;
+            manager.interval.addBarier();
+            manager.graphic = manager.interval.currentBarier;
+            manager.updateBarierListBox();
+            manager.bariersListBox.SelectedIndex = manager.bariersListBox.Items.Count - 1; 
         }
     }
+
+    class InputSyntheticBarier : State
+    {
+        private InterfaceManager manager;
+        public InputSyntheticBarier(State nextState, InterfaceManager manager)
+            : base(nextState)
+        {
+            this.manager = manager;
+        }
+        public override void doAfter()
+        {
+            if (manager.interval.currentBarier.points.Count < 2)
+            {
+                manager.bariersListBox.SelectedIndex = manager.interval.bariers.FindIndex(x => x == manager.interval.currentBarier);
+                throw new BarierIsUncompleted("Завершите ввод текущего препятствия");
+
+            }
+        }
+        override public void doBefore()
+        {
+            manager.interval.addBarier();
+            manager.graphic = manager.interval.currentBarier;
+            manager.updateBarierListBox();
+            manager.bariersListBox.SelectedIndex = manager.bariersListBox.Items.Count - 1;
+        }
+    }  
+
+
 
     class FinalState : State
     {

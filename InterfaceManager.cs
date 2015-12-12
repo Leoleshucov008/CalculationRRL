@@ -11,6 +11,8 @@ namespace CalculationRRL
         // Выделенная точка, на которую нажали правой
         int selectedPointIndex;
         ZedGraph.PointPair oldPointPos;
+        public ListBox bariersListBox {get; private set; }
+        public ComboBox surfaceTypeComboBox { get; private set; }
         public Interval interval { get; set; }
         // Редактируемый график
         public IGraphic graphic { get; set; }
@@ -149,22 +151,6 @@ namespace CalculationRRL
 
         }   
 
-        public void showHint(PointF p, ToolTip toolTip)
-        {
-            double x, y;            
-            zedGraphPane.ReverseTransform(p, out x, out y);
-
-            if (!interval.isPointOnInterval(new ZedGraph.PointPair(x, y)))
-            {
-                toolTip.Hide(zedGraphControl);               
-            }
-            else
-            {
-                Point point= new Point(Convert.ToInt32(p.X), Convert.ToInt32(p.Y));
-                toolTip.Show(x.ToString("F2") + ":" + y.ToString("F2"), zedGraphControl, point);           
-            }            
-        }
-
         private void disableEditOnGraph()
         {
             zedGraphControl.IsEnableHEdit = false;
@@ -182,9 +168,9 @@ namespace CalculationRRL
             ZedGraph.CurveItem curve;
             int index;
             bool isOnCurve = zedGraphPane.FindNearestPoint(p, zedGraphPane.CurveList, out curve, out index);
-
+            
             disableEditOnGraph();
-            if (!isOnCurve)
+            if (!isOnCurve || graphic == null || graphic.getCurve() != curve)
             {
                 double x, y;
                 zedGraphPane.ReverseTransform(p, out x, out y);
@@ -218,10 +204,6 @@ namespace CalculationRRL
                     // То разрешить редактирование только по Y
                     zedGraphControl.IsEnableHEdit = false;
                 }
-            }
-            else
-            {
-                
             }
             updateGraph();
            
@@ -275,11 +257,7 @@ namespace CalculationRRL
             }
             catch (InvalidPointPositon e)
             {
-                MessageBox.Show(e.Message);
-            }
-            catch (BarierIntersection e)
-            {
-                MessageBox.Show(e.Message);
+                
             }
             updateGraph();
         }
@@ -316,26 +294,66 @@ namespace CalculationRRL
             // Устанавливает график в начальное состояние
 
             selectedPointIndex = -1;
-            zedGraphPane.XAxis.Scale.Max = _R;
-            zedGraphPane.YAxis.Scale.Min = hMin;
-            zedGraphPane.YAxis.Scale.Max = hMax;
+            zedGraphPane.XAxis.Scale.Max = interval.R;
+            zedGraphPane.YAxis.Scale.Min = interval.minH;
+            zedGraphPane.YAxis.Scale.Max = interval.maxH;
 
             updateZedGraphSteps();          
 
             updateGraph();
         }
 
-        public InterfaceManager(ZedGraph.ZedGraphControl zgc)
+        public void selectBarier(int i)
+        {
+            if (interval.currentBarier != interval.bariers[i] && i != -1)
+            {
+                try
+                {
+                    goNextState(new ChangeBarier(null, i, this));
+                    interval.setBarier(i);
+                    graphic = interval.currentBarier;
+                    zedGraphControl.Invalidate();
+                }
+                catch (BarierIsUncompleted exception)
+                {
+                    MessageBox.Show(exception.Message);
+                }
+            }            
+        }
+
+        public void removeCurrentBarier()
+        {
+            interval.removeCurrentBarier();
+            graphic = interval.currentBarier;
+            updateBarierListBox();
+        }
+
+        public void updateBarierListBox()
+        {
+            bariersListBox.Items.Clear();
+            for (int i = 0; i < interval.bariers.Count; ++i)
+            {
+                bariersListBox.Items.Add("Препятствие " + Convert.ToString(i + 1));
+            }
+            if (bariersListBox.SelectedIndex < 0 || bariersListBox.SelectedIndex >= interval.bariers.Count)
+            {
+                bariersListBox.SelectedIndex = interval.bariers.Count - 1;
+            }
+            surfaceTypeComboBox.SelectedItem = interval.currentBarier.barierType;
+
+        }
+
+        public InterfaceManager(ZedGraph.ZedGraphControl zgc, ListBox listBox, ComboBox comboBox)
         {
             zedGraphControl = zgc;
             zedGraphPane = zgc.GraphPane;
-            
+            bariersListBox = listBox;
+            surfaceTypeComboBox = comboBox;
+
             _R = 20;
             _hMax = 200;
             _antennaH = 20;
-            _lambda = 2.5;
-
-            
+            _lambda = 2.5;            
            
             zedGraphControl.IsShowContextMenu = false;
             ZedGraph.Line.Default.IsSmooth = true;
