@@ -298,7 +298,7 @@ namespace CalculationRRL
         public Barier currentBarier { get; private set; }
         public CurveItem earthCurve { get; private set; }
         public ZedGraph.GraphPane graphPane { get; private set; }
-
+        public PointPairList H0 { get; private set; }
         private double getEarthCurveH(double x)
         {
             // Радиус земли километров
@@ -337,12 +337,27 @@ namespace CalculationRRL
             graphPane.CurveList.Clear();
             profile = new Profile(begin, end, this);
             bariers = new List<Barier>();
+
+            H0 = new PointPairList();
+            x = 0;
+            double step = 0.01;
+            while (x <= R)
+            {
+                H0.Add(x, getH0(x));
+                x += step;
+            }
         }
 
         // Лежит ли точка внутри интервала
         public bool isPointOnInterval(PointPair p)
         {
             return p.X >= 0 && p.X <= R && p.Y >= minH && p.Y <= maxH;
+        }
+
+        public double getH0(double x)
+        {
+            return ((PointPairList)lineOfSight.Points).SplineInterpolateX(x, ZedGraph.Line.Default.SmoothTension)
+                 - Math.Sqrt(1.0 / 3.0 * lambda * R * 1000 * x / R * (1.0 - x / R));
         }
 
         public void setBarier(int index)

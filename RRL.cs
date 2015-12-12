@@ -1,314 +1,255 @@
 ﻿using System;
 using System.Collections.Generic;
+using ZedGraph;
 
-namespace RRL
+namespace CalculationRRL
 {
-
-    public class PointD
-    {
-        // Точка, с прегруженными операциями сложения, вычитания и умножения на число
-        public double x {get; set;} 
-        public double y {get; set;}
-        public PointD(){}
-        public PointD(double x, double y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-        public PointD(PointD p)
-        {
-            this.x = p.x;
-            this.y = p.y;
-        }
-
-        public static PointD operator + (PointD a, PointD b)
-        {
-            return new PointD(a.x + b.x, a.y + b.y);
-        }
-
-        public static PointD operator - (PointD a, PointD b)
-        {
-            return new PointD(a.x - b.x, a.y - b.y);
-        }
-
-        public static PointD operator * (PointD a, double b)
-        {
-            return new PointD(a.x * b, a.y * b);
-        }
-
-
-
-    }
-    
-    public abstract class Line
-    {
-        // Абстракный класс линии
-        // Метод at(x) возвращает значение по y в точке x
-        public Line() { }
-        ~Line(){}
-        abstract public double at(double x);
-    }
-
-    public class Polyline : Line
-    {
-        // Ломаная линия
-        // Задается списком узлов
-        // getIntersection находит точки пересечения ломаной с линией заданной функцией
-        private List<PointD> points;
-
-        private static int ComparePointD(PointD a, PointD b)
-        {
-            if (a.x < b.x)            
-                return -1;
-            if (a.x > b.x)
-                return 1;
-            if (a.y < b.y)
-                return -1;
-            if (b.y > b.x)
-                return 1;
-            return 0;
-        }
-
-        public Polyline(List<PointD> points)
-        {
-            this.points = new List<PointD>();
-            for (int i = 0; i < points.Count; ++i)
-            {
-                this.points.Add(points[i]);
-            }            
-        }
-
-        public override double at(double x)
-        {
-            int i = 0;
-            while (i < points.Count - 1)
-            {
-                if (points[i].x <= x && points[i + 1].x >= x)
-                    break;
-                ++i;
-            }
-            if (i == points.Count - 1)
-                return 0; // TODO: thorw exception
-            
-            PointD l = points[i], r = points[i + 1];
-            double k = (r.y - l.y) / (r.x - l.x);
-            return l.y - k * l.x + k * x;               
-        }
-
-        public List<PointD> getIntersections(Line f, double step)
-        {
-            // Возвращает список точек пересечения ломаной с линией f
-            // step - точность с которой неообходимо найти точки пересечения
-            List<PointD> p = new List<PointD>();
-            for (int i = 0; i < points.Count - 1; ++i)
-            {
-                double xl = points[i].x;
-                double yl = points[i].y;
-                double xr = points[i].x + step;
-                double yr;
-                while (xr <= points[i + 1].x)
-                {
-                    yr = at(xr);
-                    double ldy = f.at(xl) - yl, rdy = f.at(xr) - yr;
-                    if (ldy == 0.0)
-                    {
-                        p.Add(new PointD(xl, yl));
-                    }
-                    else if (rdy == 0.0)
-                    {
-                        p.Add(new PointD(xr, yr));
-                    }
-                    else if (Math.Sign(ldy) != Math.Sign(rdy))
-                    {
-                        p.Add(new PointD((xl + xr) / 2.0, (yl + yr) / 2.0));
-                    }
-                    xl = xr;
-                    yl = yr;
-                    xr += step;
-                }
-            }
-                
-            return p;
-        }
-    }
-
-    public class LineByFunc : Line
-    {
-        // Произвольная функция от x
-        private Func<double, double> f;
-        public LineByFunc(Func<double, double> f)
-        {
-            this.f = f;
-        }
-
-        public override double at(double x)
-        {
-            return f(x);
-        }
-    }
-
-    public class Ellipse : Line
-    {
-        // Эллипс с наклоном к оси ox
-        // x0, y0 - координаты центра
-        // a, b - радиусы 
-        // alpha - угол наклона
-        private readonly double a;
-        private readonly double b;
-        private readonly double alpha;
-        private readonly double x0;
-        private readonly double y0;
-        public Ellipse(double x0, double y0, double a, double b, double alpha)
-        {
-            this.x0 = x0;
-            this.y0 = y0;
-            if (Math.Abs(alpha) == Math.PI / 2.0)
-            {
-                this.a = b;
-                this.b = a;
-                this.alpha = 0;
-            }
-            else
-            {
-                this.a = a;
-                this.b = b;
-                this.alpha = alpha;
-            }
-
-        }
-
-        public override double at(double x)
-        {
-            double xProj = (x - x0) / Math.Cos(alpha);
-            return -xProj * Math.Sin(alpha) + b * Math.Sqrt(1 - xProj * xProj / a / a) * Math.Cos(alpha) + y0;
-        }
-    }
     // Тип интервала 
     enum IntervalType { opened, halfOpened, closed }
 
     class RRLCalculator
     {
-        // Профиль интервала
-        private Polyline intervalProfile;
-        private Polyline lineOfSight;
-        // Длина волны на которой ведется передача
-        private double lambda;
-        // Длина интервала
-        private double R;
-        // Линия критических просветов
-        private LineByFunc H0;
-        // Высота антенн
-        private double antennaH;
-        
-        
-
-        public RRLCalculator(List<PointD> p, double l, double h)
+        Interval interval;
+        double R;
+        double tension = Line.Default.SmoothTension;
+        public RRLCalculator(Interval interval)
         {
-            // Калькулятор РРЛ
-            // На вход список точек - узлов ломаной определяющей профиль интревала,
-            // в порядке увеичения координаты x
-            // в первой точке x = 0
-            // в последнй x = R
-            // l - длина волны передачи
-            // h - высота антенн
+            this.interval = interval;
+            R = this.interval.R;
+        }
 
-            intervalProfile = new Polyline(p);
-            List<PointD> line = new List<PointD>(2);
-            line.Add(new PointD(p[0]));
-            line.Add(new PointD(p[p.Count - 1]));
-            line[0].y += h;
-            line[1].y += h;
-            lineOfSight = new Polyline(line);
-            lambda = l;
-            antennaH = h;
-            R = p[p.Count - 1].x;
-            H0 = new LineByFunc(x =>  lineOfSight.at(x) - Math.Sqrt(1.0 / 3.0 * lambda * R * 1000 * x / R * (1.0 - x / R)));
+        public PointPairList getIntersections(PointPairList points1, PointPairList points2)
+        {
+            // Возвращает список точек пересечения ломаной с линией f
+            // step - точность с которой неообходимо найти точки пересечения
+            PointPairList p = new PointPairList();
+            double xl = points1[0].X;
+            double xend = points1[points1.Count - 1].X;
+            double step = 0.01;
+            while (xl < xend)
+            {
+                double xr = xl + step;
+                if ((points1.SplineInterpolateX(xl, tension) - points2.SplineInterpolateX(xl, tension))
+                    * (points1.SplineInterpolateX(xr, tension) - points2.SplineInterpolateX(xr, tension)) <= 0)
+                {
+                    p.Add((xl + xr) / 2.0, points1.SplineInterpolateX((xl + xr) / 2.0, tension));
+                }
+                xl = xr;
+
+            }
+            return p;
         }
 
         // Расчет РРЛ
         public void calculate()
         {
             // Определение типа интервала
-            
-            // Точки пересечения профиля местности с линией критических просветов 
-            List<PointD> intersectWithH0 = intervalProfile.getIntersections(H0, R / 1000.0);
 
-            // Линия прямой видимости
-            List<PointD> p = new List<PointD>(2);
-            p.Add(new PointD(0, intervalProfile.at(0) + antennaH));
-            p.Add(new PointD(R, intervalProfile.at(R) + antennaH));
-            Polyline lineOfSight = new Polyline(p);
-            p = null;
-            
+            // Точки пересечения профиля местности с линией критических просветов 
+            PointPairList intersectWithH0 = getIntersections(interval.H0, interval.profile.points);
+
             // Точки пересечения линии прямой видимости с профилем интервала
-            List<PointD> intersectWithLOS = intervalProfile.getIntersections(lineOfSight, R / 1000.0);
+            PointPairList intersectWithLOS = getIntersections(((PointPairList)interval.lineOfSight.Points), interval.profile.points);
 
             // Если профиль интервала пересекает линию прямой видимости, то интервал закрытый
             if (intersectWithLOS.Count > 0)
             {
-                calcClosed();
+                //calcClosed();
             }
             // Если профиль интервала пересекает линию критических просветов, то полуоткрытый
             else if (intersectWithH0.Count > 0)
             {
-                calcHalfOpened();
+                // calcHalfOpened();
             }
             // Итервал открытый
             else
             {
-                calcOpened();
+                //calcOpened();
             }
-            
+
+        }
+        public static double norma(PointPair a, PointPair b)
+        {
+            return Math.Sqrt(Math.Pow((b.X - a.X), 2) + Math.Pow((b.Y - a.Y), 2));
         }
 
-        public IntervalType getIntervalType()
+        public double Radius(PointPair a, PointPair b, PointPair c)
         {
-            // Определение типа интервала
+            double A, B, C, S;
 
-            // Точки пересечения профиля местности с линией критических просветов 
-            List<PointD> intersectWithH0 = intervalProfile.getIntersections(H0, R / 100000.0);
+            A = norma(a, b);
+            B = norma(b, c);
+            C = norma(a, c);
 
-           
-            // Точки пересечения линии прямой видимости с профилем интервала
-            List<PointD> intersectWithLOS = intervalProfile.getIntersections(lineOfSight, R / 100000.0);
-
-            // Если профиль интервала пересекает линию прямой видимости, то интервал закрытый
-            if (intersectWithLOS.Count > 0)
+            S = Math.Sqrt((A + B + C) * (-A + B + C) * (A - B + C) * (A + B - C));
+            return A * B * C / S;
+        }
+        private double getWpDop(string stationType, string poddiap, int waveNumber, int intervalCount)
+        {
+            if (stationType.Equals("Р-409"))
             {
-                return IntervalType.closed;
+                if (poddiap.Equals("Б"))
+                {
+                    if (waveNumber >= 0 && waveNumber < 151)
+                    {
+                        switch (intervalCount)
+                        {
+                            case 1: { return (0.235 * R - 45.68); }
+                            case 2: { return (0.238 * R - 44.26); }
+                            case 4: { return (0.235 * R - 42.5); }
+                            case 6: { return (0.235 * R - 41.5); }
+                            default: { return (0.235 * R - 40.5); }
+                        }
+                    }
+                    else if (waveNumber >= 151 && waveNumber < 301)
+                    {
+                        switch (intervalCount)
+                        {
+                            case 1: { return (0.247 * R - 44.22); }
+                            case 2: { return (0.248 * R - 42.68); }
+                            case 4: { return (0.245 * R - 41); }
+                            case 6: { return (0.245 * R - 39.5); }
+                            default: { return (0.239 * R - 38.7); }
+                        }
+                    }
+                    else if (waveNumber >= 301 && waveNumber < 451)
+                    {
+                        switch (intervalCount)
+                        {
+                            case 1: { return (0.24 * R - 42.3); }
+                            case 2: { return (0.24 * R - 40.8); }
+                            case 4: { return (0.245 * R - 39.3); }
+                            case 6: { return (0.245 * R - 38.3); }
+                            default: { return (0.245 * R - 37.3); }
+                        }
+                    }
+                    else if (waveNumber >= 451 && waveNumber < 599)
+                    {
+                        switch (intervalCount)
+                        {
+                            case 1: { return (0.237 * R - 41.12); }
+                            case 2: { return (0.235 * R - 39.5); }
+                            case 4: { return (0.25 * R - 38.4); }
+                            case 6: { return (0.24 * R - 36.9); }
+                            default: { return (0.24 * R - 35.9); }
+                        }
+                    }
+                    else
+                    {
+                        switch (intervalCount)
+                        {
+                            case 1: { return (0.24 * R - 40.3); }
+                            case 2: { return (0.235 * R - 38.5); }
+                            case 4: { return (0.238 * R - 36.78); }
+                            case 6: { return (0.238 * R - 35.78); }
+                            default: { return (0.238 * R - 34.78); }
+                        }
+                    }
+                }
+                else
+                {
+                    if (waveNumber >= 0 && waveNumber < 151)
+                    {
+                        switch (intervalCount)
+                        {
+                            case 1: { return (0.23 * R - 43.5); }
+                            case 2: { return (0.22 * R - 41.6); }
+                            case 4: { return (0.235 * R - 40.5); }
+                            case 6: { return (0.235 * R - 39.5); }
+                            default: { return (0.225 * R - 38.2); }
+                        }
+                    }
+                    else if (waveNumber >= 151 && waveNumber < 301)
+                    {
+                        switch (intervalCount)
+                        {
+                            case 1: { return (0.235 * R - 42); }
+                            case 2: { return (0.235 * R - 40.5); }
+                            case 4: { return (0.235 * R - 39); }
+                            case 6: { return (0.235 * R - 38); }
+                            default: { return (0.235 * R - 37); }
+                        }
+                    }
+                    else if (waveNumber >= 301 && waveNumber < 451)
+                    {
+                        switch (intervalCount)
+                        {
+                            case 1: { return (0.24 * R - 40.8); }
+                            case 2: { return (0.225 * R - 38.9); }
+                            case 4: { return (0.24 * R - 37.8); }
+                            case 6: { return (0.24 * R - 36.8); }
+                            default: { return (0.24 * R - 35.8); }
+                        }
+                    }
+                    else if (waveNumber >= 451 && waveNumber < 599)
+                    {
+                        switch (intervalCount)
+                        {
+                            case 1: { return (0.225 * R - 39); }
+                            case 2: { return (0.235 * R - 38); }
+                            case 4: { return (0.225 * R - 36); }
+                            case 6: { return (0.225 * R - 35); }
+                            default: { return (0.225 * R - 34); }
+                        }
+                    }
+                    else
+                    {
+                        switch (intervalCount)
+                        {
+                            case 1: { return (0.225 * R - 38); }
+                            case 2: { return (0.225 * R - 36.5); }
+                            case 4: { return (0.245 * R - 35.6); }
+                            case 6: { return (0.245 * R - 34.6); }
+                            default: { return (0.245 * R - 33.6); }
+                        }
+                    }
+                }
             }
-            // Если профиль интервала пересекает линию критических просветов, то полуоткрытый
-            else if (intersectWithH0.Count > 0)
-            {
-                return IntervalType.halfOpened;
-            }
-            // Итервал открытый
             else
             {
-                return IntervalType.opened;
+                if (poddiap.Equals("1")) return (-0.0016 * R * R + 0.6039 * R - 43.7);
+                else return (-0.0011 * R * R + 0.6521 * R - 37.2);
             }
-           
         }
 
-        public List<PointD> getH0()
+        private double getW0(double Mu)
         {
-            List<PointD> list = new List<PointD>();
-            double xPos = 0;
-            double xStep = R / 100;
-            while (xPos <= R)
+            return 15.832 * Math.Pow(Mu, -0.853);
+        }
+        private string calcOpened(string typeOfSurface, PointPair leftCoord, PointPair rightCoord, out double Wp, out double WpDop, out double q1)
+        {
+            double point = leftCoord.X + (rightCoord.X - leftCoord.X) / 2;
+            double H = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(point, tension) - interval.profile.points.SplineInterpolateX(point, tension);
+            double H0 = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(point, tension) - interval.H0.SplineInterpolateX(point, tension);
+            double h = H / H0;
+            double Fe;
+            switch (typeOfSurface)
             {
-                list.Add(new PointD(xPos, H0.at(xPos)));
-                xPos += xStep;
+                case "Равнина, луга, солончаки": { Fe = 0.95; break; }
+                case "Ровная лесистая поверхность": { Fe = 0.9; break; }
+                case "Среднепересечённая местность": { Fe = 0.7; break; }
+                default: { Fe = 0.6; break; }
             }
-            return list;
+            Wp = (-10 * Math.Log10(1 + Fe * Fe - 2 * Fe * Math.Cos(h * h * Math.PI / 3)));
+            double q0 = 0.0038 * R * R - 0.5762 * R + 50.857;
+            q1 = q0 + Wp;
+            WpDop = 0;//getWpDop(interval.stationType, interval.poddiap, interval.waveNumber, interval.intervalCount);
+            if (Wp < WpDop) return "Пригоден";
+            else return "Непригоден";
         }
-
-        private void calcOpened()
+        private string calcHalfOpened(PointPair leftcoord, PointPair rightcoord, PointPair midlecoord, out double Wp, out double WpDop)
         {
-            //ящерица
-        }
-        private void calcHalfOpened()
-        {
+            double K = leftcoord.X / R;
+            double point = leftcoord.X + (rightcoord.X - leftcoord.X) / 2;
+            double H0 = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(point, tension) - interval.H0.SplineInterpolateX(point, tension);
+            double Mu = Math.Pow((R * R * K * K * (1 - K) * (1 - K)) / (H0 * Radius(leftcoord, midlecoord, rightcoord)), 0.333);
+            double Wp0 = getW0(Mu);
+            double H = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(point, tension) - interval.profile.points.SplineInterpolateX(point, tension);
+            double h = H / H0;
+            Wp = Wp0 * (1 - h);
+            WpDop = 0;// getWpDop(interval.stationType, interval.poddiap, interval.waveNumber, interval.intervalCount);
+            if (Wp < WpDop) return "Пригоден";
+            else return "Непригоден";
         }
         private void calcClosed()
         {

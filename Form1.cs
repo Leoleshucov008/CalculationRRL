@@ -13,25 +13,24 @@ namespace CalculationRRL
     public partial class Form1 : Form
     {
         private CalculationRRL.InterfaceManager interfaceManager;
-        private PointF oldPosition;
         public Form1()
         {
             InitializeComponent();
-            interfaceManager = new InterfaceManager(zedGraph);
+            interfaceManager = new InterfaceManager(zedGraph, bariersListBox, surfaceTypeComboBox);
             textBoxRRLLength.Text = interfaceManager.R.ToString();
             textBoxHMin.Text = interfaceManager.hMin.ToString();
             textBoxHMax.Text = interfaceManager.hMax.ToString();
             textBoxAntennaH.Text = interfaceManager.antennaH.ToString();
-            textBoxLamda.Text = interfaceManager.lamda.ToString();
-            comboBox1.Items.Add("Р-409");
-            comboBox1.Items.Add("Р-419");
+            StationType.SelectedIndex = 0;
+            SubRange.SelectedIndex = 0;
         }
 
         private void textBoxRRLLength_Leave(object sender, EventArgs e)
         {
             try
             {
-                interfaceManager.R = Convert.ToDouble(textBoxRRLLength.Text.Replace('.', ','));
+                Convert.ToDouble(textBoxRRLLength.Text.Replace('.', ','));
+                interfaceManager.parametersChange();
             }
             catch (FormatException)
             {
@@ -43,7 +42,8 @@ namespace CalculationRRL
         {
             try
             {
-                interfaceManager.hMin = Convert.ToDouble(textBoxHMin.Text.Replace('.', ','));
+                Convert.ToDouble(textBoxHMin.Text.Replace('.', ','));
+                interfaceManager.parametersChange();
             }
             catch (FormatException)
             {
@@ -54,7 +54,8 @@ namespace CalculationRRL
         {
             try
             {
-                interfaceManager.hMax = Convert.ToDouble(textBoxHMax.Text.Replace('.', ','));
+                Convert.ToDouble(textBoxHMax.Text.Replace('.', ','));
+                interfaceManager.parametersChange();
             }
             catch (FormatException)
             {
@@ -67,54 +68,15 @@ namespace CalculationRRL
         {
             try
             {
-                interfaceManager.antennaH = Convert.ToDouble(textBoxAntennaH.Text.Replace('.', ','));
+                Convert.ToDouble(textBoxHMax.Text.Replace('.', ','));
+                interfaceManager.parametersChange();
             }
             catch (FormatException)
             {
                 MessageBox.Show("Неверно введена высота антенн.\nПоле должно содержать вещественное число.", "Ошибка");
             }
-        }
-
-        private void textBoxLamda_Leave(object sender, EventArgs e)
-        {
-            try
-            {
-                interfaceManager.lamda = Convert.ToDouble(textBoxLamda.Text.Replace('.', ','));
-            }
-            catch (FormatException)
-            {
-                MessageBox.Show("Неверно введена длина волны.\nПоле должно содержать вещественное число.", "Ошибка");
-            }
-        }
-
-        private void zedGraph_MouseMove(object sender, MouseEventArgs e)
-        {
-            // Для того чтобы отлавливать реальные перемещения
-            // Событие генерируется даже без перемещения курсора
-            if (e.Location == oldPosition)
-                return;
-
-            interfaceManager.showHint(e.Location, coord);
-           
-            oldPosition = e.Location;
-        }
-
-        private void zedGraph_MouseLeave(object sender, EventArgs e)
-        {
-            coord.Hide(zedGraph);
-        }
-
-        private string zedGraph_PointEditEvent(ZedGraph.ZedGraphControl sender, ZedGraph.GraphPane pane, ZedGraph.CurveItem curve, int iPt)
-        {
-            RRL.PointD p = new RRL.PointD(curve[iPt].X, curve[iPt].Y);
-            interfaceManager.editPointOnProfile(iPt, p);
-            return default(string);
-        }
-
+        }       
      
-
-        
-
         private bool zedGraph_MouseDownEvent(ZedGraph.ZedGraphControl sender, MouseEventArgs e)
         {
             switch(e.Button)
@@ -133,7 +95,7 @@ namespace CalculationRRL
         }
         private void delItem_MouseClick(object o, EventArgs e)
         {
-            interfaceManager.removeSelectedPoint();
+            interfaceManager.removePoint();
         }
         private void menuStrip_VisibleChanged(object sender, EventArgs e)
         {
@@ -147,56 +109,192 @@ namespace CalculationRRL
 
         private void button1_Click(object sender, EventArgs e)
         {
-            interfaceManager.stationType = comboBox1.SelectedItem.ToString();
-            interfaceManager.poddiap = comboBox2.SelectedItem.ToString();
-            interfaceManager.numberOfChannel = 
             interfaceManager.calculation();
         }
 
-        private void label7_Click(object sender, EventArgs e)
+        private void StationType_SelectedIndexChanged(object sender, EventArgs e)
         {
-
-        }
-
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            comboBox2.Items.Clear();
-            if (comboBox1.SelectedIndex == 0)
+            SubRange.Items.Clear();
+            if (StationType.SelectedIndex == 0)
             {
-                comboBox2.Items.Add("Поддиап В, волна:599");
-                comboBox2.Items.Add("Поддиап В, волна:301");
-                comboBox2.Items.Add("Поддиап В, волна:001");
-                comboBox2.Items.Add("Поддиап Б, волна:599");
-                comboBox2.Items.Add("Поддиап Б, волна:301");
-                comboBox2.Items.Add("Поддиап Б, волна:001");
-               //comboBox2.Items.Add("Поддиап А, волна:600");
-                //comboBox2.Items.Add("Поддиап А, волна:300");
-                //comboBox2.Items.Add("Поддиап А, волна:000");
+                SubRange.Items.Add("Б");
+                SubRange.Items.Add("В");
             }
-            if (comboBox1.SelectedIndex == 1)
+            if (StationType.SelectedIndex == 1)
             {
-                comboBox2.Items.Add("Поддиап 4, верхняя часть");
-                comboBox2.Items.Add("Поддиап 5");
-                comboBox2.Items.Add("Поддиап 4, средняя часть");
-                comboBox2.Items.Add("Поддиап 4, нижняя часть");
-                comboBox2.Items.Add("Поддиап 3");
-                comboBox2.Items.Add("Поддиап 2");
+                SubRange.Items.Add("2");
+                SubRange.Items.Add("3");
+                SubRange.Items.Add("4");
+                SubRange.Items.Add("5");
+
+            }
+            SubRange.SelectedIndex = 0;
+
+        }
+        private void setMinMaxWaveNum(int min, int max)
+        {
+            waveNumber.Maximum = max;
+            waveNumber.Minimum = min;
+        }
+        private void SubRange_SelectedValueChanged(object sender, EventArgs e)
+        {
+            switch (SubRange.Items[SubRange.SelectedIndex].ToString())
+            {
+                case "Б": setMinMaxWaveNum(0, 600); break;
+                case "В": setMinMaxWaveNum(0, 600); break;
+                case "2": setMinMaxWaveNum(0, 800); break;
+                case "3": setMinMaxWaveNum(0, 534); break;
+                case "4": setMinMaxWaveNum(0, 800); break;
+                case "5": setMinMaxWaveNum(0, 550); break;
+
+            }
+            waveNumInfo.Text = "0..." + waveNumber.Maximum.ToString();
+        }
+
+        private void waveNumber_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (waveNumber.Value < waveNumber.Minimum)
+                waveNumber.Value = waveNumber.Minimum;
+            if (waveNumber.Value > waveNumber.Maximum)
+                waveNumber.Value = waveNumber.Maximum;
+        }
+
+        private void waveNumber_ValueChanged(object sender, EventArgs e)
+        {
+            interfaceManager.lambda = getLambda(Convert.ToInt32(waveNumber.Value), SubRange.SelectedItem.ToString(), StationType.SelectedItem.ToString());
+        }
+
+        private double getLambda(int number, string podd, string stationtype)
+        {
+            double f;
+            double lambda;
+            double CC = 3 * Math.Pow(10.0, 8.0);
+            if (stationtype == "Р-409")
+            {
+                switch (podd)
+                {
+                    case "А":
+                        {
+                            f = 60 + 0.1 * number;
+                            break;
+                        }
+                    case "Б":
+                        {
+                            f = 120 + 0.1 * number;
+                            break;
+                        }
+                    default:
+                        {
+                            f = 240 + 0.1 * number;
+                            break;
+                        }
+                }
+            }
+
+            else
+            {
+                switch (podd)
+                {
+                    case "2":
+                        {
+                            f = 160 + 0.1 * number;
+                            break;
+                        }
+                    case "3":
+                        {
+                            f = 240 + 0.1 * number;
+                            break;
+                        }
+                    case "4":
+                        {
+                            f = 320 + 0.1 * number;
+                            break;
+                        }
+                    default:
+                        {
+                            f = 480 + 0.1 * number;
+                            break;
+                        }
+                }
+                
+            }
+            lambda = CC / f / 1000000.0;
+            return lambda;
+
+        }
+
+        private void acceptIntervalParametersBtn_Click(object sender, EventArgs e)
+        {
+            interfaceManager.antennaH = Convert.ToDouble(textBoxAntennaH.Text.Replace('.', ','));
+            interfaceManager.R = Convert.ToDouble(textBoxRRLLength.Text.Replace('.', ','));
+            interfaceManager.hMin = Convert.ToDouble(textBoxHMin.Text.Replace('.', ','));
+            interfaceManager.hMax = Convert.ToDouble(textBoxHMax.Text.Replace('.', ','));
+            interfaceManager.goNextState(new InputProfilePoints(null, interfaceManager));
+            earthCurveCheckBox.Visible = zedGraph.Visible;
+            acceptProfileInputBtn.Visible = zedGraph.Visible;
+            
+        }
+
+        private void acceptProfileInputBtn_Click(object sender, EventArgs e)
+        {
+            interfaceManager.goNextState(new InputBarier(null, interfaceManager));
+            acceptProfileInputBtn.Visible = false;
+            acceptBariersBtn.Visible = true; 
+            addBarierBtn.Visible = true;
+            bariersComboBox.Visible = true;
+        }
+
+        private void acceptBariersBtn_Click(object sender, EventArgs e)
+        {
+            interfaceManager.goNextState(new FinalState(interfaceManager));
+        }
+
+        private void addBarierBtn_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                interfaceManager.goNextState(new InputBarier(null, interfaceManager));
+            }
+            catch (BarierIsUncompleted exception)
+            {
+                MessageBox.Show(exception.Message);
             }
         }
 
-        private void label7_Click_1(object sender, EventArgs e)
+        private bool zedGraph_MouseMoveEvent(ZedGraph.ZedGraphControl sender, MouseEventArgs e)
         {
+            double x, y;
+            sender.GraphPane.ReverseTransform(new PointF(e.X, e.Y), out x, out y);
+            string s = "(" + x.ToString("f2") + "; " + y.ToString("f2") + ")";
+            coordsLabel.Text = s;
+            return default(bool);
+        }
+
+        private string zedGraph_PointEditEvent(ZedGraph.ZedGraphControl sender, ZedGraph.GraphPane pane, ZedGraph.CurveItem curve, int iPt)
+        {
+            interfaceManager.editPoint(curve, iPt);
+            return default(string);
 
         }
 
-        private void labelstation_Click(object sender, EventArgs e)
+        private void bariersListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            interfaceManager.selectBarier(bariersListBox.SelectedIndex);
+            surfaceTypeComboBox.SelectedItem = interfaceManager.interval.currentBarier.barierType;
         }
 
-        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        private void deleteBarierBtn_Click(object sender, EventArgs e)
         {
+            interfaceManager.removeCurrentBarier();
+            zedGraph.Invalidate();
+        }
 
+        private void surfaceTypeComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (surfaceTypeComboBox.SelectedIndex != -1)
+            {
+                interfaceManager.interval.currentBarier.barierType = surfaceTypeComboBox.Items[surfaceTypeComboBox.SelectedIndex].ToString();
+            }
         }
     }
    
