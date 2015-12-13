@@ -230,6 +230,9 @@ namespace CalculationRRL
             interfaceManager.hMin = Convert.ToDouble(textBoxHMin.Text.Replace('.', ','));
             interfaceManager.hMax = Convert.ToDouble(textBoxHMax.Text.Replace('.', ','));
             interfaceManager.goNextState(new InputProfilePoints(null, interfaceManager));
+            interfaceManager.stationType = StationType.SelectedItem.ToString();
+            interfaceManager.subRange = SubRange.SelectedItem.ToString();
+            interfaceManager.waveNumber = Convert.ToInt32(waveNumber.Value.ToString());
             earthCurveCheckBox.Visible = zedGraph.Visible;
             acceptProfileInputBtn.Visible = zedGraph.Visible;
             

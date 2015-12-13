@@ -233,7 +233,7 @@ namespace CalculationRRL
             Wp = (-10 * Math.Log10(1 + Fe * Fe - 2 * Fe * Math.Cos(h * h * Math.PI / 3)));
             double q0 = 0.0038 * R * R - 0.5762 * R + 50.857;
             q1 = q0 + Wp;
-            WpDop = 0;//getWpDop(interval.stationType, interval.poddiap, interval.waveNumber, interval.intervalCount);
+            WpDop = getWpDop(interval.stationType, interval.subRange, interval.waveNumber, 1);//interval.intervalCount);
             if (Wp < WpDop) return "Пригоден";
             else return "Непригоден";
         }
@@ -247,7 +247,7 @@ namespace CalculationRRL
             double H = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(point, tension) - interval.profile.points.SplineInterpolateX(point, tension);
             double h = H / H0;
             Wp = Wp0 * (1 - h);
-            WpDop = 0;// getWpDop(interval.stationType, interval.poddiap, interval.waveNumber, interval.intervalCount);
+            WpDop = getWpDop(interval.stationType, interval.subRange, interval.waveNumber, 0); //interval.intervalCount);
             if (Wp < WpDop) return "Пригоден";
             else return "Непригоден";
         }

@@ -299,6 +299,10 @@ namespace CalculationRRL
         public CurveItem earthCurve { get; private set; }
         public ZedGraph.GraphPane graphPane { get; private set; }
         public PointPairList H0 { get; private set; }
+        public String stationType { get; private set; }
+        public String subRange { get; private set; }
+        public int waveNumber { get; private set; }
+
         private double getEarthCurveH(double x)
         {
             // Радиус земли километров
@@ -306,7 +310,8 @@ namespace CalculationRRL
             return 1000.0 * (Math.Sqrt(EarthR * EarthR - Math.Pow(x - R / 2, 2.0)) - Math.Sqrt(EarthR * EarthR - R * R / 4));
         }
         
-        public Interval(double R, double minH, double maxH, double lambda, ZedGraph.GraphPane graphPane)
+        public Interval(double R, double minH, double maxH, double lambda, ZedGraph.GraphPane graphPane, 
+            string stationType, string subRange, int waveNumber)
         {
             this.R = R;
             this.minH = minH;
@@ -314,6 +319,9 @@ namespace CalculationRRL
             this.lambda = lambda;
             this.antennaH = antennaH;
             this.graphPane = graphPane;
+            this.stationType = stationType;
+            this.subRange = subRange;
+            this.waveNumber = waveNumber;
             
             bariers = new List<Barier>();
 

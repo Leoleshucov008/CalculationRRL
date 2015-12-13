@@ -33,13 +33,34 @@ namespace CalculationRRL
         }
         override public void doAfter()
         {
-            manager.interval = new Interval(manager.R, manager.hMin, manager.hMax, manager.lambda, manager.zedGraphPane);
+            manager.interval = new Interval(manager.R, manager.hMin, manager.hMax, manager.lambda, manager.zedGraphPane
+                , manager.stationType, manager.subRange, manager.waveNumber);
             manager.resetGraph();
             manager.showGraph();
         }
         override public void doBefore()
         {
             
+        }
+    }
+
+    class InitialState : State
+    {
+        private InterfaceManager manager;
+        public InitialState(State nextState, InterfaceManager manager)
+            : base(nextState)
+        {
+            this.manager = manager;
+        }
+
+        public override void doAfter()
+        {
+               
+        }
+
+        override public void doBefore()
+        {
+            manager.graphic = manager.interval.profile;    
         }
     }
 

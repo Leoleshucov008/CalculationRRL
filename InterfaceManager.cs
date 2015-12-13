@@ -119,6 +119,11 @@ namespace CalculationRRL
             zedGraphPane.XAxis.Scale.MajorStep = _R / 10;
             zedGraphPane.XAxis.Scale.MinorStep = _R / 20;
         }
+
+        public string stationType;
+        public string subRange;
+        public int waveNumber;
+
         // Длина волны(м)
         private double _lambda;
         public double lambda
