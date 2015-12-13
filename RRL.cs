@@ -186,13 +186,72 @@ namespace RRL
     // Тип интервала 
     enum IntervalType { opened, halfOpened, closed }
 
+
     class RRLCalculator
     {
+        public double CC = 3 * Math.Pow(10.0,8.0);
         // Профиль интервала
         private Polyline intervalProfile;
         private Polyline lineOfSight;
         // Длина волны на которой ведется передача
         private double lambda;
+
+        private double getlambda(int number, string podd, string stationtype)
+        {
+            double f;
+            if (stationtype == "Р-409")
+            {
+                switch (podd)
+                {
+                    case "А":
+                        {
+                            f = 60 + 0.1 * number;
+                            break;
+                        }
+                    case "Б":
+                        {
+                            f = 120 + 0.1 * number;
+                            break;
+                        }
+                    default:
+                        {
+                            f = 240 + 0.1 * number;
+                            break;
+                        }
+                }
+                lambda = CC / f;
+            }
+
+            else
+            {
+                switch (podd)
+                {
+                    case "2":
+                        {
+                            f = 160 + 0.1 * number;
+                            break;
+                        }
+                    case "3":
+                        {
+                            f = 240 + 0.1 * number;
+                            break;
+                        }
+                    case "4":
+                        {
+                            f = 320 + 0.1 * number;
+                            break;
+                        }
+                    default:
+                        {
+                            f = 480 + 0.1 * number;
+                            break;
+                        }
+                }
+                lambda = CC / f;
+            }
+            return lambda;
+
+        }
         // Длина интервала
         private double R;
         // Линия критических просветов
@@ -202,7 +261,7 @@ namespace RRL
         
         
 
-        public RRLCalculator(List<PointD> p, double l, double h)
+        public RRLCalculator(List<PointD> p, int number, string podd, string stationtype, double h)
         {
             // Калькулятор РРЛ
             // На вход список точек - узлов ломаной определяющей профиль интревала,
@@ -219,7 +278,7 @@ namespace RRL
             line[0].y += h;
             line[1].y += h;
             lineOfSight = new Polyline(line);
-            lambda = l;
+            lambda = getlambda(number, podd, stationtype);
             antennaH = h;
             R = p[p.Count - 1].x;
             H0 = new LineByFunc(x =>  lineOfSight.at(x) - Math.Sqrt(1.0 / 3.0 * lambda * R * 1000 * x / R * (1.0 - x / R)));
@@ -305,7 +364,7 @@ namespace RRL
 
         private void calcOpened()
         {
-            //ящерица
+            
         }
         private void calcHalfOpened()
         {
