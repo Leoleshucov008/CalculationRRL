@@ -256,13 +256,21 @@ namespace CalculationRRL
 
         public void editPoint(ZedGraph.CurveItem curve, int index)
         {
-            try
+            if (graphic == null || graphic.getCurve() != curve)
             {
-                graphic.editPoint(index, curve.Points[index], oldPointPos);
+                curve[index].X = oldPointPos.X;
+                curve[index].Y = oldPointPos.Y;
             }
-            catch (InvalidPointPositon e)
+            else
             {
-                
+                try
+                {
+                    graphic.editPoint(index, curve.Points[index], oldPointPos);
+                }
+                catch (InvalidPointPositon e)
+                {
+                    MessageBox.Show(e.Message);
+                }
             }
             updateGraph();
         }
