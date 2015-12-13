@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CalculationRRL</RootNamespace>
     <AssemblyName>CalculationRRL</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -42,9 +43,8 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="ZedGraph, Version=1.0.1812.29779, Culture=neutral">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>res\lib\ZedGraph.dll</HintPath>
+    <Reference Include="ZedGraph">
+      <HintPath>.\ZedGraph.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

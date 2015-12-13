@@ -27,11 +27,12 @@
         /// содержимое данного метода при помощи редактора кода.
         /// </summary>
         private void InitializeComponent()
-        {   
+        {
             this.components = new System.ComponentModel.Container();
             this.coord = new System.Windows.Forms.ToolTip(this.components);
             this.zedGraph = new ZedGraph.ZedGraphControl();
             this.label1 = new System.Windows.Forms.Label();
+            this.labelstation = new System.Windows.Forms.Label();
             this.textBoxRRLLength = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.textBoxHMin = new System.Windows.Forms.TextBox();
@@ -40,11 +41,14 @@
             this.textBoxLamda = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label6 = new System.Windows.Forms.Label();
             this.textBoxHMax = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.earthCurveCheckBox = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.label7 = new System.Windows.Forms.Label();
+            this.comboBox2 = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -92,11 +96,21 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Длина интревала (км)";
             // 
+            // labelstation
+            // 
+            this.labelstation.AutoSize = true;
+            this.labelstation.Location = new System.Drawing.Point(6, 224);
+            this.labelstation.Name = "labelstation";
+            this.labelstation.Size = new System.Drawing.Size(84, 13);
+            this.labelstation.TabIndex = 0;
+            this.labelstation.Text = "Выбор станции";
+            this.labelstation.Click += new System.EventHandler(this.labelstation_Click);
+            // 
             // textBoxRRLLength
             // 
-            this.textBoxRRLLength.Location = new System.Drawing.Point(9, 50);
+            this.textBoxRRLLength.Location = new System.Drawing.Point(9, 47);
             this.textBoxRRLLength.Name = "textBoxRRLLength";
-            this.textBoxRRLLength.Size = new System.Drawing.Size(126, 21);
+            this.textBoxRRLLength.Size = new System.Drawing.Size(126, 20);
             this.textBoxRRLLength.TabIndex = 1;
             this.textBoxRRLLength.Text = "20";
             this.textBoxRRLLength.Leave += new System.EventHandler(this.textBoxRRLLength_Leave);
@@ -106,7 +120,7 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(6, 87);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(174, 13);
+            this.label2.Size = new System.Drawing.Size(173, 13);
             this.label2.TabIndex = 2;
             this.label2.Text = "Перепад высот на интервале (м)";
             // 
@@ -114,7 +128,7 @@
             // 
             this.textBoxHMin.Location = new System.Drawing.Point(35, 103);
             this.textBoxHMin.Name = "textBoxHMin";
-            this.textBoxHMin.Size = new System.Drawing.Size(100, 21);
+            this.textBoxHMin.Size = new System.Drawing.Size(100, 20);
             this.textBoxHMin.TabIndex = 3;
             this.textBoxHMin.Text = "0";
             this.textBoxHMin.Leave += new System.EventHandler(this.textBoxHMin_Leave);
@@ -123,7 +137,7 @@
             // 
             this.textBoxAntennaH.Location = new System.Drawing.Point(9, 189);
             this.textBoxAntennaH.Name = "textBoxAntennaH";
-            this.textBoxAntennaH.Size = new System.Drawing.Size(126, 21);
+            this.textBoxAntennaH.Size = new System.Drawing.Size(126, 20);
             this.textBoxAntennaH.TabIndex = 5;
             this.textBoxAntennaH.Text = "20";
             this.textBoxAntennaH.Leave += new System.EventHandler(this.textBoxAntennaH_Leave);
@@ -139,28 +153,32 @@
             // 
             // textBoxLamda
             // 
-            this.textBoxLamda.Location = new System.Drawing.Point(9, 246);
+            this.textBoxLamda.Location = new System.Drawing.Point(9, 347);
             this.textBoxLamda.Name = "textBoxLamda";
-            this.textBoxLamda.Size = new System.Drawing.Size(126, 21);
+            this.textBoxLamda.ReadOnly = true;
+            this.textBoxLamda.Size = new System.Drawing.Size(126, 20);
             this.textBoxLamda.TabIndex = 7;
-            this.textBoxLamda.Text = "2.5";
             this.textBoxLamda.Leave += new System.EventHandler(this.textBoxLamda_Leave);
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(6, 228);
+            this.label4.Location = new System.Drawing.Point(6, 331);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(91, 13);
+            this.label4.Size = new System.Drawing.Size(92, 13);
             this.label4.TabIndex = 6;
             this.label4.Text = "Длина волны (м)";
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.comboBox2);
+            this.groupBox1.Controls.Add(this.label7);
+            this.groupBox1.Controls.Add(this.comboBox1);
             this.groupBox1.Controls.Add(this.label6);
             this.groupBox1.Controls.Add(this.textBoxHMax);
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Controls.Add(this.labelstation);
             this.groupBox1.Controls.Add(this.textBoxLamda);
             this.groupBox1.Controls.Add(this.textBoxRRLLength);
             this.groupBox1.Controls.Add(this.label4);
@@ -175,6 +193,16 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Параметры расчета";
             // 
+            // comboBox1
+            // 
+            this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Location = new System.Drawing.Point(6, 240);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(121, 21);
+            this.comboBox1.TabIndex = 11;
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            // 
             // label6
             // 
             this.label6.AutoSize = true;
@@ -188,7 +216,7 @@
             // 
             this.textBoxHMax.Location = new System.Drawing.Point(35, 135);
             this.textBoxHMax.Name = "textBoxHMax";
-            this.textBoxHMax.Size = new System.Drawing.Size(100, 21);
+            this.textBoxHMax.Size = new System.Drawing.Size(100, 20);
             this.textBoxHMax.TabIndex = 9;
             this.textBoxHMax.Text = "200";
             this.textBoxHMax.Leave += new System.EventHandler(this.textBoxHMax_Leave);
@@ -198,7 +226,7 @@
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(6, 106);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(23, 13);
+            this.label5.Size = new System.Drawing.Size(24, 13);
             this.label5.TabIndex = 8;
             this.label5.Text = "Min\r\n";
             // 
@@ -207,7 +235,7 @@
             this.earthCurveCheckBox.AutoSize = true;
             this.earthCurveCheckBox.Location = new System.Drawing.Point(244, 401);
             this.earthCurveCheckBox.Name = "earthCurveCheckBox";
-            this.earthCurveCheckBox.Size = new System.Drawing.Size(243, 17);
+            this.earthCurveCheckBox.Size = new System.Drawing.Size(244, 17);
             this.earthCurveCheckBox.TabIndex = 9;
             this.earthCurveCheckBox.Text = "Отобразить кривизну земной поверхности";
             this.earthCurveCheckBox.UseVisualStyleBackColor = true;
@@ -222,6 +250,26 @@
             this.button1.Text = "Расчет";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(6, 281);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(75, 13);
+            this.label7.TabIndex = 14;
+            this.label7.Text = "Поддиапазон";
+            this.label7.Click += new System.EventHandler(this.label7_Click_1);
+            // 
+            // comboBox2
+            // 
+            this.comboBox2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox2.FormattingEnabled = true;
+            this.comboBox2.Location = new System.Drawing.Point(6, 297);
+            this.comboBox2.Name = "comboBox2";
+            this.comboBox2.Size = new System.Drawing.Size(163, 21);
+            this.comboBox2.TabIndex = 15;
+            this.comboBox2.SelectedIndexChanged += new System.EventHandler(this.comboBox2_SelectedIndexChanged);
             // 
             // Form1
             // 
@@ -244,6 +292,7 @@
         #endregion
 
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labelstation;
         private System.Windows.Forms.TextBox textBoxRRLLength;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textBoxHMin;
@@ -259,6 +308,9 @@
         private ZedGraph.ZedGraphControl zedGraph;
         private System.Windows.Forms.CheckBox earthCurveCheckBox;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.ComboBox comboBox2;
+        private System.Windows.Forms.Label label7;
     }
 }
 

@@ -23,6 +23,8 @@ namespace CalculationRRL
             textBoxHMax.Text = interfaceManager.hMax.ToString();
             textBoxAntennaH.Text = interfaceManager.antennaH.ToString();
             textBoxLamda.Text = interfaceManager.lamda.ToString();
+            comboBox1.Items.Add("Р-409");
+            comboBox1.Items.Add("Р-419");
         }
 
         private void textBoxRRLLength_Leave(object sender, EventArgs e)
@@ -145,7 +147,56 @@ namespace CalculationRRL
 
         private void button1_Click(object sender, EventArgs e)
         {
+            interfaceManager.stationType = comboBox1.SelectedItem.ToString();
+            interfaceManager.poddiap = comboBox2.SelectedItem.ToString();
+            interfaceManager.numberOfChannel = 
             interfaceManager.calculation();
+        }
+
+        private void label7_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            comboBox2.Items.Clear();
+            if (comboBox1.SelectedIndex == 0)
+            {
+                comboBox2.Items.Add("Поддиап В, волна:599");
+                comboBox2.Items.Add("Поддиап В, волна:301");
+                comboBox2.Items.Add("Поддиап В, волна:001");
+                comboBox2.Items.Add("Поддиап Б, волна:599");
+                comboBox2.Items.Add("Поддиап Б, волна:301");
+                comboBox2.Items.Add("Поддиап Б, волна:001");
+               //comboBox2.Items.Add("Поддиап А, волна:600");
+                //comboBox2.Items.Add("Поддиап А, волна:300");
+                //comboBox2.Items.Add("Поддиап А, волна:000");
+            }
+            if (comboBox1.SelectedIndex == 1)
+            {
+                comboBox2.Items.Add("Поддиап 4, верхняя часть");
+                comboBox2.Items.Add("Поддиап 5");
+                comboBox2.Items.Add("Поддиап 4, средняя часть");
+                comboBox2.Items.Add("Поддиап 4, нижняя часть");
+                comboBox2.Items.Add("Поддиап 3");
+                comboBox2.Items.Add("Поддиап 2");
+            }
+        }
+
+        private void label7_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void labelstation_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
    

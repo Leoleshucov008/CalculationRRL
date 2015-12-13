@@ -9,7 +9,12 @@ namespace CalculationRRL
     {
         // Выделенная точка, на которую нажали правой
         int selectedPoint;
-
+        private int _numberOfChannel;
+        public int numberOfChannel { get; set; }
+        private string _poddiap;
+        public string poddiap { get; set; }
+        private string _stationType;
+        public string stationType { get; set; }
         // Отображать кривизне земной поверхности
         private bool _isShowEarthCurve;
         public bool isShowEarthCurve 
@@ -332,7 +337,7 @@ namespace CalculationRRL
             {
                 p.y += getEarthCurveH(p.x);
             }
-            RRL.RRLCalculator calc = new RRL.RRLCalculator(profileWithEarthCurve, _lamda, _antennaH);
+            RRL.RRLCalculator calc = new RRL.RRLCalculator(profileWithEarthCurve, _numberOfChannel, _poddiap, _stationType, _antennaH);
             List<RRL.PointD> h0 = calc.getH0();
             double[] x = new double[h0.Count];
             double[] y = new double[h0.Count];
@@ -360,7 +365,7 @@ namespace CalculationRRL
             _R = 20;
             _hMax = 200;
             _antennaH = 20;
-            _lamda = 2.5;
+            _lamda = 0;
             profile = new List<RRL.PointD>(20);
             profile.Insert(0, new RRL.PointD(0, (_hMax + _hMin) / 2.0));
             profile.Insert(1, new RRL.PointD(_R, (_hMax + _hMin) / 2.0));
