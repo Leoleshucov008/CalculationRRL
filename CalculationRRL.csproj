@@ -42,9 +42,8 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="ZedGraph, Version=1.0.1812.29779, Culture=neutral">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>res\lib\ZedGraph.dll</HintPath>
+    <Reference Include="ZedGraph">
+      <HintPath>.\ZedGraph.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

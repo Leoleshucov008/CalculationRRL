@@ -21,7 +21,6 @@ namespace CalculationRRL
         public PointPairList getIntersections(PointPairList points1, PointPairList points2)
         {
             // Возвращает список точек пересечения ломаной с линией f
-            // step - точность с которой неообходимо найти точки пересечения
             PointPairList p = new PointPairList();
             double xl = points1[0].X;
             double xend = points1[points1.Count - 1].X;
@@ -51,40 +50,53 @@ namespace CalculationRRL
             // Точки пересечения линии прямой видимости с профилем интервала
             PointPairList intersectWithLOS = getIntersections(((PointPairList)interval.lineOfSight.Points), interval.profile.points);
 
+            double WpDop = getWpDop(interval.stationType, interval.subRange, interval.waveNumber, /*interval.intervalCount*/1);//TODO: при добавлении изменяемого количества интервалов, последним параметром подставить подставить их количетсво
+            double Wp =0; //величина ослабления радиоволн
+            double q = 0; //Запас уровня ВЧ радиосигнала 
             // Если профиль интервала пересекает линию прямой видимости, то интервал закрытый
             if (intersectWithLOS.Count > 0)
             {
-                //calcClosed();
+                calcClosed(interval.bariers, WpDop, out Wp, out q);
             }
             // Если профиль интервала пересекает линию критических просветов, то полуоткрытый
             else if (intersectWithH0.Count > 0)
             {
-                // calcHalfOpened();
+                calcHalfOpened(interval.bariers, WpDop, out Wp, out q);
             }
             // Итервал открытый
             else
             {
-                //calcOpened();
+                calcOpened(/*interval.typeOfSurface*/"Среднепересечённая местность", WpDop, out Wp, out q);
             }
 
         }
-        public static double norma(PointPair a, PointPair b)
+        private bool merge(Barier left, Barier right)
         {
-            return Math.Sqrt(Math.Pow((b.X - a.X), 2) + Math.Pow((b.Y - a.Y), 2));
+            double T1 = left.points[1].X;
+            double T2 = right.points[1].X;
+            if (T2 > 0.4126 * T1 * T1 - 1.3899 * T1 + 0.9837 && T2 < -T1 + 1) return true;
+            else return false;
         }
 
-        public double Radius(PointPair a, PointPair b, PointPair c)
+        private double calcBarier(Barier barier)//расчёт препятствия для полуоткрытых инетрвалов
         {
-            double A, B, C, S;
-
-            A = norma(a, b);
-            B = norma(b, c);
-            C = norma(a, c);
-
-            S = Math.Sqrt((A + B + C) * (-A + B + C) * (A - B + C) * (A + B - C));
-            return A * B * C / S;
+            PointPair A = barier.points[0];
+            PointPair B = barier.points[1];
+            PointPair C = barier.points[2];
+            double Y = B.Y - (((A.Y - C.Y) * B.X + (A.X * C.Y - A.Y * C.X)) / (C.X - A.X));//высота У(см. формулу 15 в методичке Садомовского)
+            double r = C.X - A.X; //ширина препятствия
+            double Rpr = (r * r) / (8 * Y);//формула 15(Садомовский)
+            double K = B.X / R;
+            double H0 = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(B.X, tension) - interval.H0.SplineInterpolateX(B.X, tension);
+            double Mu = Math.Pow((R * R * K * K * (1 - K) * (1 - K)) / (H0 * Rpr), 0.333);
+            double H = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(B.X, tension) - interval.profile.points.SplineInterpolateX(B.X, tension);
+            double h = H / H0;
+            double Wp0 = 15.832 * Math.Pow(Mu, -0.853);
+            double Wp = Wp0 * (1 - h);
+            return Wp;
         }
-        private double getWpDop(string stationType, string poddiap, int waveNumber, int intervalCount)
+
+        private double getWpDop(string stationType, string poddiap, int waveNumber, int intervalCount)//вычисление допустимого Wp 
         {
             if (stationType.Equals("Р-409"))
             {
@@ -212,15 +224,10 @@ namespace CalculationRRL
             }
         }
 
-        private double getW0(double Mu)
+        private string calcOpened(string typeOfSurface, double WpDop, out double Wp, out double q)
         {
-            return 15.832 * Math.Pow(Mu, -0.853);
-        }
-        private string calcOpened(string typeOfSurface, PointPair leftCoord, PointPair rightCoord, out double Wp, out double WpDop, out double q1)
-        {
-            double point = leftCoord.X + (rightCoord.X - leftCoord.X) / 2;
-            double H = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(point, tension) - interval.profile.points.SplineInterpolateX(point, tension);
-            double H0 = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(point, tension) - interval.H0.SplineInterpolateX(point, tension);
+            double H = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(R/2, tension) - interval.profile.points.SplineInterpolateX(R/2, tension);
+            double H0 = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(R/2, tension) - interval.H0.SplineInterpolateX(R/2, tension);
             double h = H / H0;
             double Fe;
             switch (typeOfSurface)
@@ -232,27 +239,196 @@ namespace CalculationRRL
             }
             Wp = (-10 * Math.Log10(1 + Fe * Fe - 2 * Fe * Math.Cos(h * h * Math.PI / 3)));
             double q0 = 0.0038 * R * R - 0.5762 * R + 50.857;
-            q1 = q0 + Wp;
-            WpDop = getWpDop(interval.stationType, interval.subRange, interval.waveNumber, 1);//interval.intervalCount);
+            q = q0 + Wp;
             if (Wp < WpDop) return "Пригоден";
             else return "Непригоден";
         }
-        private string calcHalfOpened(PointPair leftcoord, PointPair rightcoord, PointPair midlecoord, out double Wp, out double WpDop)
+        private string calcHalfOpened(List<Barier> bariers, double WpDop, out double Wp, out double q)
         {
-            double K = leftcoord.X / R;
-            double point = leftcoord.X + (rightcoord.X - leftcoord.X) / 2;
-            double H0 = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(point, tension) - interval.H0.SplineInterpolateX(point, tension);
-            double Mu = Math.Pow((R * R * K * K * (1 - K) * (1 - K)) / (H0 * Radius(leftcoord, midlecoord, rightcoord)), 0.333);
-            double Wp0 = getW0(Mu);
-            double H = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(point, tension) - interval.profile.points.SplineInterpolateX(point, tension);
-            double h = H / H0;
-            Wp = Wp0 * (1 - h);
-            WpDop = getWpDop(interval.stationType, interval.subRange, interval.waveNumber, 0); //interval.intervalCount);
-            if (Wp < WpDop) return "Пригоден";
-            else return "Непригоден";
+            Wp = 0;
+            double q0 = 0.0038 * R * R - 0.5762 * R + 50.857;
+            if (bariers.Count==1)
+            {
+                Wp = calcBarier(bariers[0]);
+                q = q0 + Wp;
+                if (Wp < WpDop) return "Пригоден";
+                else return "Непригоден";
+            }
+            else
+            {
+                bool prevousMerged = false;
+                Barier barier = null;
+                for (int i=1; i<bariers.Count; i++)
+                {
+                    if (prevousMerged)//если предыдыщие препятствия слились
+                    {
+                        if (merge(barier, bariers[i]))
+                        { //слияние препятствий
+                            Barier newBarier = new Barier(interval);
+                            newBarier.addPoint(barier.points[0]);
+                            double middlePointX = barier.points[1].X + (bariers[i].points[1].X - barier.points[1].X) / 2;
+                            double middlePointY = barier.points[1].Y > bariers[i].points[1].Y ? barier.points[1].Y : bariers[i].points[1].Y;
+                            newBarier.addPoint(new PointPair(middlePointX, middlePointY));
+                            newBarier.addPoint(bariers[i].points[2]);
+                            Wp += calcBarier(newBarier);
+                            barier = newBarier;
+                            prevousMerged = true;
+                            i++;
+                        }
+                        else
+                        {
+                            Wp += calcBarier(bariers[i]);
+                            prevousMerged = false;
+                        }
+                    }
+                    else
+                    {
+                        if (merge(bariers[i-1], bariers[i]))
+                        { //слияние препятствий
+                            Barier newBarier = new Barier(interval);
+                            newBarier.addPoint(bariers[i - 1].points[0]);
+                            double middlePointX = bariers[i - 1].points[1].X + (bariers[i].points[1].X - bariers[i - 1].points[1].X) / 2;
+                            double middlePointY = bariers[i - 1].points[1].Y > bariers[i].points[1].Y ? bariers[i - 1].points[1].Y : bariers[i].points[1].Y;
+                            newBarier.addPoint(new PointPair(middlePointX, middlePointY));
+                            newBarier.addPoint(bariers[i].points[2]);
+                            barier = newBarier;
+                            Wp += calcBarier(barier);
+                            prevousMerged = true;
+                            i++;
+                        }
+                        else
+                        {
+                            Wp += calcBarier(bariers[i - 1]);
+                            Wp += calcBarier(bariers[i]);
+                            prevousMerged = false;
+                        }
+                    }
+                }
+                q = q0 + Wp;
+                if (Wp < WpDop) return "Пригоден";
+                else return "Непригоден";
+            }
         }
-        private void calcClosed()
+        private string calcClosed(List<Barier> bariers, double WpDop, out double Wp, out double q)
         {
+            List<Barier> closedBariers = new List<Barier>();
+            for (int i = 0; i < bariers.Count; i++)
+                if (bariers[i].points[1].Y >= (interval.profile.points).SplineInterpolateX(bariers[i].points[1].X, tension))
+                {
+                    closedBariers.Add(bariers[i]);
+                }
+            Wp = 0;
+            double q0 = 0.0038 * R * R - 0.5762 * R + 50.857;
+            if (bariers.Count == 1)
+            {
+                Wp = calcBarier(bariers[0]);
+                q = q0 + Wp;
+                if (Wp < WpDop) return "Пригоден";
+                else return "Непригоден";
+            }
+            else
+            {
+                if (closedBariers.Count == 1)
+                {
+                    #region Одно препятствие закрывающее линию прямой видимости
+                    bool prevousMerged = false;
+                    Barier barier = null;
+                    for (int i = 1; i < bariers.Count; i++)
+                    {
+                        if (prevousMerged)//если предыдыщие препятствия слились
+                        {
+                            if (merge(barier, bariers[i]))
+                            { //слияние препятствий
+                                Barier newBarier = new Barier(interval);
+                                newBarier.addPoint(barier.points[0]);
+                                double middlePointX = barier.points[1].X + (bariers[i].points[1].X - barier.points[1].X) / 2;
+                                double middlePointY = barier.points[1].Y > bariers[i].points[1].Y ? barier.points[1].Y : bariers[i].points[1].Y;
+                                newBarier.addPoint(new PointPair(middlePointX, middlePointY));
+                                newBarier.addPoint(bariers[i].points[2]);
+                                Wp += calcBarier(newBarier);
+                                barier = newBarier;
+                                prevousMerged = true;
+                                i++;
+                            }
+                            else
+                            {
+                                Wp += calcBarier(bariers[i]);
+                                prevousMerged = false;
+                            }
+                        }
+                        else
+                        {
+                            if (merge(bariers[i - 1], bariers[i]))
+                            { //слияние препятствий
+                                Barier newBarier = new Barier(interval);
+                                newBarier.addPoint(bariers[i - 1].points[0]);
+                                double middlePointX = bariers[i - 1].points[1].X + (bariers[i].points[1].X - bariers[i - 1].points[1].X) / 2;
+                                double middlePointY = bariers[i - 1].points[1].Y > bariers[i].points[1].Y ? bariers[i - 1].points[1].Y : bariers[i].points[1].Y;
+                                newBarier.addPoint(new PointPair(middlePointX, middlePointY));
+                                newBarier.addPoint(bariers[i].points[2]);
+                                barier = newBarier;
+                                Wp += calcBarier(barier);
+                                prevousMerged = true;
+                                i++;
+                            }
+                            else
+                            {
+                                Wp += calcBarier(bariers[i - 1]);
+                                Wp += calcBarier(bariers[i]);
+                                prevousMerged = false;
+                            }
+                        }
+                    }
+                    q = q0 + Wp;
+                    if (Wp < WpDop) return "Пригоден";
+                    else return "Непригоден";
+                    #endregion
+                }
+                else
+                {
+                    #region Несколько препятствий закрывающих линию прямой видимости
+                    PointPair A = closedBariers[0].points[0];
+                    PointPair B = closedBariers[0].points[1];
+                    PointPair C = closedBariers[0].points[2];
+                    double Y = B.Y - (((A.Y - C.Y) * B.X + (A.X * C.Y - A.Y * C.X)) / (C.X - A.X));//высота У(см. формулу 15 в методичке Садомовского)
+                    double r = C.X - A.X; //ширина препятствия
+                    double Rpr = (r * r) / (8 * Y);//формула 15(Садомовский)
+                    double K = B.X / R;
+                    double H0 = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(B.X, tension) - interval.H0.SplineInterpolateX(B.X, tension);
+                    double Mu = Math.Pow((R * R * K * K * (1 - K) * (1 - K)) / (H0 * Rpr), 0.333);
+                    PointPairList line = new PointPairList();
+                    line.Add(interval.profile.points[0]);
+                    line.Add(new PointPair(closedBariers[closedBariers.Count - 1].points[1]));
+                    PointPairList points = getIntersections(line, closedBariers[0].points);
+                    double H = closedBariers[0].points[1].Y - points[0].Y;
+                    double h = H / H0;
+                    double Wp0 = 15.832 * Math.Pow(Mu, -0.853);
+                    Wp = Wp0 * (1 - h);
+
+                    A = closedBariers[closedBariers.Count-1].points[0];
+                    B = closedBariers[closedBariers.Count-1].points[1];
+                    C = closedBariers[closedBariers.Count-1].points[2];
+                    Y = B.Y - (((A.Y - C.Y) * B.X + (A.X * C.Y - A.Y * C.X)) / (C.X - A.X));//высота У(см. формулу 15 в методичке Садомовского)
+                    r = C.X - A.X; //ширина препятствия
+                    Rpr = (r * r) / (8 * Y);//формула 15(Садомовский)
+                    K = B.X / R;
+                    H0 = ((PointPairList)interval.lineOfSight.Points).SplineInterpolateX(B.X, tension) - interval.H0.SplineInterpolateX(B.X, tension);
+                    Mu = Math.Pow((R * R * K * K * (1 - K) * (1 - K)) / (H0 * Rpr), 0.333);
+                    line = new PointPairList();
+                    line.Add(interval.profile.points[interval.profile.points.Count-1]);
+                    line.Add(new PointPair(closedBariers[0].points[1]));
+                    points = getIntersections(line, closedBariers[closedBariers.Count - 1].points);
+                    H = closedBariers[closedBariers.Count - 1].points[1].Y - points[0].Y;
+                    h = H / H0;
+                    Wp0 = 15.832 * Math.Pow(Mu, -0.853);
+                    Wp += Wp0 * (1 - h);
+
+                    q = q0 + Wp;
+                    if (Wp < WpDop) return "Пригоден";
+                    else return "Непригоден";
+                    #endregion
+                }
+            }
         }
     }
 }
